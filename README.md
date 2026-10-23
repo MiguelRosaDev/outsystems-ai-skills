@@ -1,113 +1,88 @@
-# OutSystems Skills for AI Coding Assistants
+# OutSystems AI Skills (`outsystems-ai-skills`)
 
-[![GitHub repo](https://img.shields.io/badge/GitHub-MiguelRosaDev%2Foutsystems--skills-blue.svg)](https://github.com/MiguelRosaDev/outsystems-skills)
-[![OutSystems ModelAPI](https://img.shields.io/badge/OutSystems-ModelAPI%20%2F%20O11%20%2F%20ODC-red.svg)](https://www.outsystems.com/)
-[![AI Skills](https://img.shields.io/badge/AI%20Skills-Agentic%20Workflows-green.svg)](https://github.com/MiguelRosaDev)
+[![GitHub repo](https://img.shields.io/badge/GitHub-MiguelRosaDev%2Foutsystems--ai--skills-blue.svg)](https://github.com/MiguelRosaDev/outsystems-ai-skills)
+[![OutSystems ModelAPI](https://img.shields.io/badge/OutSystems-11%20%2F%20ODC%20%2F%20MCP-red.svg)](https://www.outsystems.com/)
+[![AI Skills](https://img.shields.io/badge/AI%20Skills-16%20Workflows-green.svg)](https://github.com/MiguelRosaDev/outsystems-ai-skills)
 
-A comprehensive suite of specialized skills, best practices, and automated workflows for AI models and coding assistants (Claude, Cursor, Copilot, ChatGPT, or custom AI agents) interacting with **OutSystems 11 / ODC** via the **ModelAPI** and MCP servers (such as `os11-oml-transformer`).
+A comprehensive collection of **16 specialized AI skills, architectural guardrails, and automated workflows** for AI models and coding assistants (Claude, Cursor, Copilot, ChatGPT, or custom MCP agents) interacting with **OutSystems 11 / ODC** via the **ModelAPI** and MCP servers (such as `os11-oml-transformer`).
 
 ---
 
 ## 🚀 Why This Repository Exists
 
-When AI coding models generate or modify OutSystems applications through ModelAPI / MCP tools, they lack visual and architectural awareness by default:
-* **Visual Knotting**: Flow nodes are placed on top of each other at coordinate `(0,0)`, creating tangled spaghetti lines in Service Studio.
-* **Architecture Debt**: Models easily create circular dependencies, upward module references, or violate 4-Layer Canvas (4LC) standards.
-* **Database Bottlenecks**: Models tend to write database aggregates inside `ForEach` loops ($N+1$ queries), fail to index filter attributes, or write runtime updates to Site Properties.
-* **Security & Encapsulation Flaws**: Entities are accidentally exposed with public write access instead of read-only wrappers, and server actions lack role checks (`Check<Role>Role`).
+When AI coding models generate or modify OutSystems applications through ModelAPI / MCP tools without specialized instructions, they introduce severe architectural and visual problems:
+* **Visual Knotting**: Flow nodes generated via API sit stacked on top of each other at coordinate `(0,0)`, creating unreadable spaghetti in Service Studio.
+* **Architecture & Data Debt**: Models create circular dependencies, violate 4-Layer Canvas (4LC) standards, misuse foreign key `Delete Rules`, or place `Binary Data` directly inside operational tables.
+* **Runtime & Database Bottlenecks**: Models place database aggregates inside `ForEach` loops ($N+1$ queries), cause infinite UI re-render loops in `OnRender`, or build monolithic timers that roll back after 20-minute timeouts.
+* **Security & Encapsulation Flaws**: Entities are exposed with public write access instead of read-only CRUD wrappers, and server actions omit server-side `Check<Role>Role` checks.
 
-This repository provides **executable guardrails and instructions** that guide AI models to produce clean, maintainable, performant, and secure OutSystems code.
+This repository equips any AI model with **production-grade OutSystems engineering rules** aligned with official OutSystems 11 documentation, TrueChange, and AI Mentor Studio.
 
 ---
 
-## 📦 Included Skills
+## 🧭 Quick Reference: All 16 Skills
 
-### 🎨 1. `outsystems-flow-layout`
-Visual flow layout engine and structural health checker for Server, Screen, and Data Actions.
-* **Deterministic Grid**: Standardized spacing (columns $\Delta X = 2286$, rows $\Delta Y = 1829$; Start at `2743, 1371`).
-* **Zero Crossings**: Connectors that would cross nodes are cleanly routed through dummy Assign nodes (`Route` / `Loop back`).
-* **Branch Isolation**: 1 Assign and 1 End per branch to eliminate cross-screen convergence lines.
-* **Semantic Labels & Linked Comments**: Human-readable labels on every Assign/If, and comments linked to nodes via `comment.CreateConnector(node)`.
-* **Structural Checker (`check-flow.cs`)**: Verifies 0 crossings, 0 overlapping nodes, 0 unreachable nodes, and 0 unlabelled logic elements.
-
-### 🏛️ 2. `architecture-canvas-4lc`
-Guards against architectural erosion and enforces the official OutSystems 4-Layer Canvas.
-* **Layer Hierarchy**: Orchestration (O) ➔ End-User (E) ➔ Core (C) ➔ Foundation (F).
-* **The 3 Golden Rules**: No upward dependencies, no side dependencies in End-User, and zero circular dependencies in Core.
-* **Module Suffixes**: Enforces standardized naming (`_CS`, `_BL`, `_IS`, `_CW`, `_API`, `_Th`, `_Lib`).
-
-### 🔒 3. `crud-wrapper-pattern`
-Encapsulates Core Services (`_CS`) data entities with secure CRUD wrapper actions.
-* **Read-Only Entities**: Enforces `Public = Yes` with `Expose Read Only = Yes`.
-* **Mandatory Audit Attributes**: Injects `CreatedBy`, `CreatedOn`, `UpdatedBy`, `UpdatedOn`, and `IsActive` (soft-delete).
-* **Standard Action Suite**: Generates `<Entity>_Create`, `<Entity>_Update`, `<Entity>_Get`, `<Entity>_GetForUpdate`, and `<Entity>_Delete`.
-* **Integrity & Rollback**: Validates business constraints and handles `Abort Transaction` safely.
-
-### ⚡ 4. `performance-anti-patterns`
-Performance guardrails and database optimization rules.
-* **Zero Queries in Loops**: Prohibits Aggregates, SQL queries, or server action fetches inside `ForEach` loops ($N+1$ anti-pattern).
-* **Aggregate Optimization**: Rules for `Fetch = At start` vs `Fetch = Only on demand`, pagination, and `Max Records`.
-* **Runtime Site Properties**: Forbids runtime programmatic writes to Site Properties (which invalidate cluster cache).
-* **Indexing Guidelines**: Mandatory single/composite indexes on foreign keys and search filters.
-
-### 🏷️ 5. `outsystems-naming-conventions`
-Official OutSystems naming standards and folder organization.
-* **Logic Actions**: PascalCase with `Verb + Noun` formula (`Customer_GetById`, `Invoice_CalculateTotal`).
-* **Folder Structure**: Clean organization in the Logic tab (`Public`, `Internal`, `CRUD`, `Validations`, `Sync`).
-* **Variables & DTOs**: Prefix `ST_` for structures, `Is/Has/Can` for booleans, and `...List` for list collections.
-
-### 🛡️ 6. `security-rbac-guardrails`
-Role-Based Access Control (RBAC) and data protection.
-* **Server-Side Validation**: Mandatory `Check<Role>Role(UserId: GetUserId())` at the start of all public server actions.
-* **SQL Injection Prevention**: Safe parameter binding (`@Param` with `Expand Inline = No`) and whitelisting dynamic clauses.
-* **Data Masking**: Prevents logging sensitive tokens, passwords, or PII in `LogMessage` and exception logs.
-
-### 📱 7. `cordova-plugin-wrapper`
-Patterns for wrapping Cordova and Capacitor native plugins in OutSystems mobile modules.
-* **Extensibility Configurations**: JSON structure with pinned repository release tags and preferences.
-* **Plugin Availability Checks**: Graceful fallback and error reporting if running on desktop browser preview.
-* **Asynchronous Callbacks**: Strict usage of `$resolve()` and `$reject()` in JavaScript nodes to prevent UI freezes.
-
-### 🔌 8. `cordova-plugin-builder`
-Architecture and native standards for scaffolding and building custom Cordova plugin repositories.
-* **Manifest Rigor**: Production-ready `plugin.xml` schema for Android and iOS dependencies.
-* **Non-Blocking Native Threads**: Background thread dispatching (`cordova.getThreadPool()` in Java, `runInBackground` in Objective-C) to prevent UI freezes/ANRs.
-* **Modern OS Compliance**: AndroidX migration, Android 13+ runtime permissions, and Apple Privacy Manifests (`PrivacyInfo.xcprivacy`).
-* **MABS Build Safety**: Avoids version conflicts in Gradle/CocoaPods and incompatible shell hooks.
-
-### 💅 9. `css-format`
-Formatting standards for OutSystems StyleSheets (themes, screens, and blocks).
-* 4-space indentation, one declaration per line, opening brace on selector line.
-* Full stylesheet replacement instead of appending competing one-line overrides.
+| Category | Skill | Purpose |
+| :--- | :--- | :--- |
+| **Visual & UI** | [`outsystems-flow-layout`](skills/outsystems-flow-layout/SKILL.md) | Grid layout engine (`polish-flow.cs`) & checker (`check-flow.cs`) to eliminate node overlap and crossing connectors |
+| **Visual & UI** | [`css-format`](skills/css-format/SKILL.md) | 4-space multi-line CSS formatting and full-sheet replacement for OutSystems themes, screens, and blocks |
+| **Visual & UI** | [`reactive-lifecycle-and-sync`](skills/reactive-lifecycle-and-sync/SKILL.md) | Screen/Block lifecycle rules (`OnInitialize`, `OnReady`, `OnRender`, `OnParametersChanged`) & Mobile Offline Sync patterns |
+| **Architecture & Data** | [`architecture-canvas-4lc`](skills/architecture-canvas-4lc/SKILL.md) | 4-Layer Canvas (Orchestration, End-User, Core, Foundation), the 3 Golden Rules, and module suffixes |
+| **Architecture & Data** | [`data-modeling-best-practices`](skills/data-modeling-best-practices/SKILL.md) | Foreign Key Delete Rules (`Protect`, `Delete`, `Ignore`), 1-to-1 Binary Data isolation, and Static Entities |
+| **Architecture & Data** | [`crud-wrapper-pattern`](skills/crud-wrapper-pattern/SKILL.md) | Read-only entity exposure, audit attributes, and `<Entity>_Create/Update/Get/Delete` wrapper actions |
+| **Logic & Performance** | [`performance-anti-patterns`](skills/performance-anti-patterns/SKILL.md) | Prevents $N+1$ queries inside loops, enforces Aggregate fetch optimization, indexing, and forbids runtime Site Property writes |
+| **Logic & Performance** | [`timers-and-bpt-patterns`](skills/timers-and-bpt-patterns/SKILL.md) | Heavy Timers (`WakeTimer` + soft timeout + batch `CommitTransaction` + kill-switch) & Light BPT vs Standard BPT |
+| **Logic & Performance** | [`exception-handling-and-logging`](skills/exception-handling-and-logging/SKILL.md) | Exception hierarchy, `Abort Transaction` rollback rules for custom error tables, and structured logging |
+| **Integrations & Security** | [`integration-service-patterns`](skills/integration-service-patterns/SKILL.md) | `_IS` wrapper modules, canonical domain structures, `OnBeforeRequest`/`OnAfterResponse`, and timeouts |
+| **Integrations & Security** | [`security-rbac-guardrails`](skills/security-rbac-guardrails/SKILL.md) | Server-side `Check<Role>Role` validation, Advanced SQL injection prevention, and PII log masking |
+| **Mobile Plugins** | [`cordova-plugin-wrapper`](skills/cordova-plugin-wrapper/SKILL.md) | OutSystems mobile wrapper modules: Extensibility Configurations JSON, `$resolve()` JS nodes, and browser fallbacks |
+| **Mobile Plugins** | [`cordova-plugin-builder`](skills/cordova-plugin-builder/SKILL.md) | Native Cordova plugin repositories: `plugin.xml`, Android background threads, AndroidX, and iOS Privacy Manifests |
+| **Standards & i18n** | [`outsystems-naming-conventions`](skills/outsystems-naming-conventions/SKILL.md) | PascalCase `Verb + Noun` actions, `ST_` structures, `Is/Has/Can` booleans, and Logic folder organization |
+| **Standards & i18n** | [`multilanguage-translations`](skills/multilanguage-translations/SKILL.md) | Parameterized translatable strings (`Replace`), `Translate` vs `DoNotTranslate`, and MCP translation workflows |
+| **Standards & i18n** | [`documentation-and-code-hygiene`](skills/documentation-and-code-hygiene/SKILL.md) | 100% meaningful element description coverage (`coverage` / `set_descriptions`) and zero TrueChange warnings |
 
 ---
 
 ## 🛠️ Repository Structure
 
 ```text
-outsystems-skills/
+outsystems-ai-skills/
 ├── README.md
 ├── .gitignore
 └── skills/
+    ├── architecture-canvas-4lc/
+    │   └── SKILL.md
+    ├── cordova-plugin-builder/
+    │   └── SKILL.md
+    ├── cordova-plugin-wrapper/
+    │   └── SKILL.md
+    ├── crud-wrapper-pattern/
+    │   └── SKILL.md
+    ├── css-format/
+    │   └── SKILL.md
+    ├── data-modeling-best-practices/
+    │   └── SKILL.md
+    ├── documentation-and-code-hygiene/
+    │   └── SKILL.md
+    ├── exception-handling-and-logging/
+    │   └── SKILL.md
+    ├── integration-service-patterns/
+    │   └── SKILL.md
+    ├── multilanguage-translations/
+    │   └── SKILL.md
     ├── outsystems-flow-layout/
     │   ├── SKILL.md
     │   ├── check-flow.cs
     │   └── polish-flow.cs
-    ├── architecture-canvas-4lc/
-    │   └── SKILL.md
-    ├── crud-wrapper-pattern/
+    ├── outsystems-naming-conventions/
     │   └── SKILL.md
     ├── performance-anti-patterns/
     │   └── SKILL.md
-    ├── outsystems-naming-conventions/
+    ├── reactive-lifecycle-and-sync/
     │   └── SKILL.md
     ├── security-rbac-guardrails/
     │   └── SKILL.md
-    ├── cordova-plugin-wrapper/
-    │   └── SKILL.md
-    ├── cordova-plugin-builder/
-    │   └── SKILL.md
-    └── css-format/
+    └── timers-and-bpt-patterns/
         └── SKILL.md
 ```
 
@@ -115,19 +90,22 @@ outsystems-skills/
 
 ## 💻 How to Use with Any AI Model or Agent
 
-These skills can be used with **any AI coding assistant, LLM, or agentic IDE** (Cursor, Claude, Copilot, ChatGPT, Antigravity, or custom agents):
+These skills are completely tool-agnostic and work with **any AI coding assistant, LLM, or agentic IDE**:
 
-### Option A: Use as System Instructions / Agent Skills
-Include the instructions from any of the `skills/<skill-name>/SKILL.md` files into your AI environment:
-* **Cursor / Windsurf**: Add to `.cursorrules` or `.windsurfrules`.
-* **GitHub Copilot**: Add to `.github/copilot-instructions.md`.
-* **Claude / ChatGPT**: Add as Project Knowledge, Custom Instructions, or directly into system prompts.
-* **Agentic Workspaces**: Mount the `skills/` directory into your agent's skills path (`.agents/skills/` or global config).
+### Option A: Use as Agent Skills / Custom Instructions
+Clone the repository and mount the `skills/` directory into your AI coding assistant:
+```bash
+git clone https://github.com/MiguelRosaDev/outsystems-ai-skills.git
+```
+* **Cursor / Windsurf**: Reference or include the `SKILL.md` files in `.cursor/rules` or `.windsurfrules`.
+* **GitHub Copilot**: Reference in `.github/copilot-instructions.md`.
+* **Claude / ChatGPT**: Upload the `skills/` markdown files to Project Knowledge / Custom GPT instructions.
+* **Agentic IDEs & MCP Clients**: Copy `skills/*` into your workspace `.agents/skills/` or global skills directory.
 
 ### Option B: Direct Execution with OutSystems ModelAPI / MCP
-For ModelAPI C# scripts (e.g. in `outsystems-flow-layout`):
-1. Paste [`polish-flow.cs`](file:///skills/outsystems-flow-layout/polish-flow.cs) into `applyModelApiCode` (customize the `Spec` dictionary with action names and labels), then run `omlMerge`.
-2. Paste [`check-flow.cs`](file:///skills/outsystems-flow-layout/check-flow.cs) into `applyModelApiCode` to get an instant health diagnostic.
+For visual flow layout and verification (`outsystems-flow-layout`):
+1. **Format & Route Flow**: Paste [`polish-flow.cs`](skills/outsystems-flow-layout/polish-flow.cs) into `applyModelApiCode` (customize the `Spec` dictionary with your action name and node labels), then run `omlMerge`.
+2. **Verify Flow Health**: Paste [`check-flow.cs`](skills/outsystems-flow-layout/check-flow.cs) into `applyModelApiCode` to verify 0 crossing connectors, 0 overlapping nodes, and 0 missing descriptions.
 
 ---
 
