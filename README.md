@@ -18,13 +18,13 @@ When AI coding models generate or edit OutSystems logic flows programmatically t
 
 Opening an action modified this way in **Service Studio** results in an unreadable visual knot.
 
-The **`flow-layout`** skill completely fixes this by enforcing deterministic grid layout, clean branch routing, semantic labeling, and automated structural validation.
+The **`outsystems-flow-layout`** skill completely fixes this by enforcing deterministic grid layout, clean branch routing, semantic labeling, and automated structural validation.
 
 ---
 
 ## 📦 Included Skills
 
-### 1. `flow-layout`
+### 1. `outsystems-flow-layout`
 Ensures all Server Actions, Screen (Client) Actions, and Data Actions follow clean visual architecture before changes are merged.
 
 * **Grid-Based Alignment**:
@@ -62,7 +62,7 @@ outsystems-skills/
 ├── README.md
 ├── .gitignore
 └── skills/
-    ├── flow-layout/
+    ├── outsystems-flow-layout/
     │   ├── SKILL.md            # Comprehensive instructions for any AI model
     │   ├── check-flow.cs       # Read-only ModelAPI checker script
     │   └── polish-flow.cs      # Layout engine, routing, and labeling script
@@ -77,21 +77,21 @@ outsystems-skills/
 These skills can be used with **any AI coding assistant, LLM, or agentic IDE**:
 
 ### Option A: Use as System Instructions / Agent Skills
-Include the instructions from [`skills/flow-layout/SKILL.md`](file:///skills/flow-layout/SKILL.md) and [`skills/css-format/SKILL.md`](file:///skills/css-format/SKILL.md) into your AI setup:
+Include the instructions from [`skills/outsystems-flow-layout/SKILL.md`](file:///skills/outsystems-flow-layout/SKILL.md) and [`skills/css-format/SKILL.md`](file:///skills/css-format/SKILL.md) into your AI setup:
 * **Cursor / Windsurf**: Add to `.cursorrules` or `.windsurfrules`.
 * **GitHub Copilot**: Add to `.github/copilot-instructions.md`.
 * **Claude / ChatGPT**: Add as Project Knowledge, Custom Instructions, or directly in your system prompt.
 * **Agentic Frameworks & MCP Clients**: Mount the `skills/` directory into your agent's skills path or workspace instructions.
 
-Whenever the model creates or updates an OutSystems action via ModelAPI or MCP, instruct it to apply the `flow-layout` rules and scripts.
+Whenever the model creates or updates an OutSystems action via ModelAPI or MCP, instruct it to apply the `outsystems-flow-layout` rules and scripts.
 
 ### Option B: Direct Execution with OutSystems ModelAPI / MCP
 If running scripts directly through an OutSystems ModelAPI tool or MCP server (e.g. `os11-oml-transformer`):
 
 1. **Format & Layout Flow**:
-   Paste [`polish-flow.cs`](file:///skills/flow-layout/polish-flow.cs) into `applyModelApiCode` (customize the `Spec` dictionary with your action name and node labels), then run `omlMerge`.
+   Paste [`polish-flow.cs`](file:///skills/outsystems-flow-layout/polish-flow.cs) into `applyModelApiCode` (customize the `Spec` dictionary with your action name and node labels), then run `omlMerge`.
 2. **Verify Flow Health**:
-   Paste [`check-flow.cs`](file:///skills/flow-layout/check-flow.cs) into `applyModelApiCode` to get an instant report on crossing connectors, overlapping nodes, and missing descriptions.
+   Paste [`check-flow.cs`](file:///skills/outsystems-flow-layout/check-flow.cs) into `applyModelApiCode` to get an instant report on crossing connectors, overlapping nodes, and missing descriptions.
 
 ---
 

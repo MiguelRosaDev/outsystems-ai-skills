@@ -1,9 +1,9 @@
 ---
-name: flow-layout
-description: How logic flows must look in OutSystems actions built or edited through the Kings3 MCP. Use whenever you create or change a server action, screen (client) action or data action with applyModelApiCode: node layout on a grid, no connector crossing a node (dummy assigns route it), one Assign and End per branch, a readable label on every Assign / If / ForEach / Message, and comments linked to the nodes they explain.
+name: outsystems-flow-layout
+description: How logic flows must look in OutSystems actions built or edited through OutSystems ModelAPI / MCP. Use whenever you create or change a server action, screen (client) action or data action with applyModelApiCode: node layout on a grid, no connector crossing a node (dummy assigns route it), one Assign and End per branch, a readable label on every Assign / If / ForEach / Message, and comments linked to the nodes they explain.
 ---
 
-# flow-layout
+# outsystems-flow-layout
 
 The user values the visual readability of OutSystems flows. A flow created through the ModelAPI has **no positions** (every node sits on the same spot) and no labels, so it is unreadable until this skill is applied. **Apply it to every action you create or change, before merging.** Do not ask; it is the standing preference.
 
