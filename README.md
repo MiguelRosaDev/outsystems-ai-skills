@@ -2,16 +2,16 @@
 
 [![GitHub repo](https://img.shields.io/badge/GitHub-MiguelRosaDev%2Foutsystems--ai--skills-blue.svg)](https://github.com/MiguelRosaDev/outsystems-ai-skills)
 [![OutSystems ModelAPI](https://img.shields.io/badge/OutSystems-11%20%2F%20ODC%20%2F%20MCP-red.svg)](https://www.outsystems.com/)
-[![AI Skills](https://img.shields.io/badge/AI%20Skills-16%20Workflows-green.svg)](https://github.com/MiguelRosaDev/outsystems-ai-skills)
+[![AI Skills](https://img.shields.io/badge/AI%20Skills-17%20Workflows-green.svg)](https://github.com/MiguelRosaDev/outsystems-ai-skills)
 
-A comprehensive collection of **16 specialized AI skills, architectural guardrails, and automated workflows** for AI models and coding assistants (Claude, Cursor, Copilot, ChatGPT, or custom MCP agents) interacting with **OutSystems 11 / ODC** via the **ModelAPI** and MCP servers (such as `os11-oml-transformer`).
+A comprehensive collection of **17 specialized AI skills, architectural guardrails, and automated workflows** for AI models and coding assistants (Claude, Cursor, Copilot, ChatGPT, or custom MCP agents) interacting with **OutSystems 11 / ODC** via the **ModelAPI** and MCP servers (such as `os11-oml-transformer`).
 
 ---
 
 ## 🚀 Why This Repository Exists
 
 When AI coding models generate or modify OutSystems applications through ModelAPI / MCP tools without specialized instructions, they introduce severe architectural and visual problems:
-* **Visual Knotting**: Flow nodes generated via API sit stacked on top of each other at coordinate `(0,0)`, creating unreadable spaghetti in Service Studio.
+* **Visual Knotting & Unlinked Comments**: Flow nodes generated via API sit stacked on top of each other at coordinate `(0,0)`, and comments either float unpinned or turn into giant multi-paragraph banners across the canvas.
 * **Architecture & Data Debt**: Models create circular dependencies, violate 4-Layer Canvas (4LC) standards, misuse foreign key `Delete Rules`, or place `Binary Data` directly inside operational tables.
 * **Runtime & Database Bottlenecks**: Models place database aggregates inside `ForEach` loops ($N+1$ queries), cause infinite UI re-render loops in `OnRender`, or build monolithic timers that roll back after 20-minute timeouts.
 * **Security & Encapsulation Flaws**: Entities are exposed with public write access instead of read-only CRUD wrappers, and server actions omit server-side `Check<Role>Role` checks.
@@ -20,11 +20,12 @@ This repository equips any AI model with **production-grade OutSystems engineeri
 
 ---
 
-## 🧭 Quick Reference: All 16 Skills
+## 🧭 Quick Reference: All 17 Skills
 
 | Category | Skill | Purpose |
 | :--- | :--- | :--- |
 | **Visual & UI** | [`outsystems-flow-layout`](skills/outsystems-flow-layout/SKILL.md) | Grid layout engine (`polish-flow.cs`) & checker (`check-flow.cs`) to eliminate node overlap and crossing connectors |
+| **Visual & UI** | [`outsystems-flow-comments`](skills/outsystems-flow-comments/SKILL.md) | Canvas comment positioning (1 column right on the same row), connector pinning (`next`/`pins`), header notes, and compact sizing |
 | **Visual & UI** | [`css-format`](skills/css-format/SKILL.md) | 4-space multi-line CSS formatting and full-sheet replacement for OutSystems themes, screens, and blocks |
 | **Visual & UI** | [`reactive-lifecycle-and-sync`](skills/reactive-lifecycle-and-sync/SKILL.md) | Screen/Block lifecycle rules (`OnInitialize`, `OnReady`, `OnRender`, `OnParametersChanged`) & Mobile Offline Sync patterns |
 | **Architecture & Data** | [`architecture-canvas-4lc`](skills/architecture-canvas-4lc/SKILL.md) | 4-Layer Canvas (Orchestration, End-User, Core, Foundation), the 3 Golden Rules, and module suffixes |
@@ -69,6 +70,8 @@ outsystems-ai-skills/
     ├── integration-service-patterns/
     │   └── SKILL.md
     ├── multilanguage-translations/
+    │   └── SKILL.md
+    ├── outsystems-flow-comments/
     │   └── SKILL.md
     ├── outsystems-flow-layout/
     │   ├── SKILL.md
