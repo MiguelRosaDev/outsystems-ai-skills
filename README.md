@@ -68,7 +68,14 @@ Patterns for wrapping Cordova and Capacitor native plugins in OutSystems mobile 
 * **Plugin Availability Checks**: Graceful fallback and error reporting if running on desktop browser preview.
 * **Asynchronous Callbacks**: Strict usage of `$resolve()` and `$reject()` in JavaScript nodes to prevent UI freezes.
 
-### 💅 8. `css-format`
+### 🔌 8. `cordova-plugin-builder`
+Architecture and native standards for scaffolding and building custom Cordova plugin repositories.
+* **Manifest Rigor**: Production-ready `plugin.xml` schema for Android and iOS dependencies.
+* **Non-Blocking Native Threads**: Background thread dispatching (`cordova.getThreadPool()` in Java, `runInBackground` in Objective-C) to prevent UI freezes/ANRs.
+* **Modern OS Compliance**: AndroidX migration, Android 13+ runtime permissions, and Apple Privacy Manifests (`PrivacyInfo.xcprivacy`).
+* **MABS Build Safety**: Avoids version conflicts in Gradle/CocoaPods and incompatible shell hooks.
+
+### 💅 9. `css-format`
 Formatting standards for OutSystems StyleSheets (themes, screens, and blocks).
 * 4-space indentation, one declaration per line, opening brace on selector line.
 * Full stylesheet replacement instead of appending competing one-line overrides.
@@ -97,6 +104,8 @@ outsystems-skills/
     ├── security-rbac-guardrails/
     │   └── SKILL.md
     ├── cordova-plugin-wrapper/
+    │   └── SKILL.md
+    ├── cordova-plugin-builder/
     │   └── SKILL.md
     └── css-format/
         └── SKILL.md
