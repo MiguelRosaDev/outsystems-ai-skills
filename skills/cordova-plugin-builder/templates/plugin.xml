@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    id="os-cordova-plugin-__PLUGIN_SLUG__"
+    version="1.0.0">
+
+    <name>__PLUGIN_NAME__</name>
+    <description>__PLUGIN_DESCRIPTION__</description>
+    <author>__AUTHOR__</author>
+    <license>MIT</license>
+    <keywords>cordova,plugin,outsystems,android,ios,__PLUGIN_SLUG__</keywords>
+    <repo>https://github.com/__GITHUB_ORG__/os-cordova-plugin-__PLUGIN_SLUG__.git</repo>
+
+    <engines>
+        <engine name="cordova" version=">=12.0.0" />
+        <engine name="cordova-android" version=">=13.0.0" />
+        <engine name="cordova-ios" version=">=7.1.0" />
+    </engines>
+
+    <!--
+      JavaScript interface exposed to the WebView as:
+        cordova.plugins.custom.__PLUGIN_NAME__
+      Note: If extending an existing plugin instead of creating a standalone one,
+      add <dependency id="..." url="..." /> above and replace <clobbers> with:
+        <merges target="cordova.plugins.existingNamespace" />
+    -->
+    <js-module src="www/__PLUGIN_NAME__.js" name="__PLUGIN_NAME__">
+        <clobbers target="cordova.plugins.custom.__PLUGIN_NAME__" />
+    </js-module>
+
+    <!-- ==================== ANDROID (Kotlin) ==================== -->
+    <platform name="android">
+        <config-file target="res/xml/config.xml" parent="/*">
+            <!-- Enable Kotlin compilation in the generated Cordova Android project -->
+            <preference name="GradlePluginKotlinEnabled" value="true" />
+            <preference name="GradlePluginKotlinCodeStyle" value="official" />
+            <preference name="GradlePluginKotlinVersion" value="1.9.24" />
+
+            <feature name="__PLUGIN_NAME__">
+                <param name="android-package" value="com.outsystems.plugins.__PLUGIN_PACKAGE__.__PLUGIN_NAME__" />
+            </feature>
+        </config-file>
+
+        <!-- Optional: Android permissions or components
+        <config-file target="AndroidManifest.xml" parent="/*">
+            <uses-permission android:name="android.permission.INTERNET" />
+        </config-file>
+        -->
+
+        <source-file
+            src="src/android/__PLUGIN_NAME__.kt"
+            target-dir="app/src/main/kotlin/com/outsystems/plugins/__PLUGIN_PACKAGE__" />
+    </platform>
+
+    <!-- ==================== iOS (Swift) ==================== -->
+    <!-- If adding external CocoaPods/SPM dependencies for MABS 13 (cordova-ios 8), add package="swift" to <platform name="ios"> and a root Package.swift -->
+    <platform name="ios">
+        <config-file target="config.xml" parent="/*">
+            <feature name="__PLUGIN_NAME__">
+                <param name="ios-package" value="__PLUGIN_NAME__" />
+            </feature>
+        </config-file>
+
+        <!-- Optional: Configurable Info.plist usage descriptions via Extensibility Preferences
+        <preference name="CAMERAUSAGEDESCRIPTION" default="This app requires camera access." />
+        <config-file target="*-Info.plist" parent="NSCameraUsageDescription">
+            <string>$CAMERAUSAGEDESCRIPTION</string>
+        </config-file>
+        -->
+
+        <source-file src="src/ios/__PLUGIN_NAME__.swift" />
+    </platform>
+</plugin>

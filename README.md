@@ -37,7 +37,7 @@ This repository equips any AI model with **production-grade OutSystems 11 engine
 | **Integrations & Security** | [`integration-service-patterns`](skills/integration-service-patterns/SKILL.md) | `_IS` wrapper modules, canonical domain structures, `OnBeforeRequest`/`OnAfterResponse`, and timeouts |
 | **Integrations & Security** | [`security-rbac-guardrails`](skills/security-rbac-guardrails/SKILL.md) | Server-side `Check<Role>Role` validation, Advanced SQL injection prevention, and PII log masking |
 | **Mobile Plugins** | [`cordova-plugin-wrapper`](skills/cordova-plugin-wrapper/SKILL.md) | OutSystems mobile wrapper modules: Extensibility Configurations JSON, `$resolve()` JS nodes, and browser fallbacks |
-| **Mobile Plugins** | [`cordova-plugin-builder`](skills/cordova-plugin-builder/SKILL.md) | Native Cordova plugin repositories: `plugin.xml`, Android background threads, AndroidX, and iOS Privacy Manifests |
+| **Mobile Plugins** | [`cordova-plugin-builder`](skills/cordova-plugin-builder/SKILL.md) | Complete GitHub repo template (`templates/`) & patterns for MABS 12/13 (Kotlin + Swift, `<merges>` extensions, SPM/Pods, and hooks) |
 | **Standards & i18n** | [`outsystems-naming-conventions`](skills/outsystems-naming-conventions/SKILL.md) | PascalCase `Verb + Noun` actions, `ST_` structures, `Is/Has/Can` booleans, and Logic folder organization |
 | **Standards & i18n** | [`multilanguage-translations`](skills/multilanguage-translations/SKILL.md) | Parameterized translatable strings (`Replace`), `Translate` vs `DoNotTranslate`, and MCP translation workflows |
 | **Standards & i18n** | [`documentation-and-code-hygiene`](skills/documentation-and-code-hygiene/SKILL.md) | 100% meaningful element description coverage (`coverage` / `set_descriptions`) and zero TrueChange warnings |
@@ -54,7 +54,16 @@ outsystems-ai-skills/
     ├── architecture-canvas-4lc/
     │   └── SKILL.md
     ├── cordova-plugin-builder/
-    │   └── SKILL.md
+    │   ├── SKILL.md
+    │   └── templates/
+    │       ├── README.md
+    │       ├── gitignore.template
+    │       ├── package.json
+    │       ├── plugin.xml
+    │       ├── src/
+    │       │   ├── android/PluginName.kt
+    │       │   └── ios/PluginName.swift
+    │       └── www/PluginName.js
     ├── cordova-plugin-wrapper/
     │   └── SKILL.md
     ├── crud-wrapper-pattern/

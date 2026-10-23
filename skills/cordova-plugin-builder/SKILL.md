@@ -1,264 +1,176 @@
 ---
 name: cordova-plugin-builder
-description: Architecture, scaffolding, and implementation standards for building native Cordova plugins compatible with OutSystems MABS (Mobile Apps Build Service), modern Android (AndroidX), and iOS (Privacy Manifests). Use whenever creating or modifying a Cordova plugin repository.
+description: Complete GitHub repository template, architecture patterns, and scaffolding standards for building native Cordova plugins for OutSystems 11 MABS (MABS 12 & MABS 13) using Kotlin (Android) and Swift (iOS), including standalone plugins, SDK extensions/bridges, build hooks, and native widgets. Use whenever creating or modifying a Cordova plugin GitHub repository.
 ---
 
 # cordova-plugin-builder
 
-Building a Cordova plugin that compiles and runs reliably in OutSystems MABS (Mobile Apps Build Service) requires strict adherence to native standards on Android (AndroidX, non-blocking execution) and iOS (ARC, background threading, Apple Privacy Manifests).
+Building a native Cordova plugin repository on GitHub that compiles and runs reliably in **OutSystems 11 MABS (Mobile Apps Build Service — MABS 12 & MABS 13)** requires strict synchronization across `plugin.xml`, `package.json`, the JavaScript bridge (`www/`), and the native implementations (`src/android/` in Kotlin and `src/ios/` in Swift).
 
-This skill guides the scaffolding and implementation of native Cordova plugin repositories from scratch.
+This skill provides a **battle-tested GitHub repository template** (located in `./templates/`) and documents the **4 real-world Cordova plugin archetypes** used in production OutSystems 11 mobile ecosystems.
 
 ---
 
-## 1. Standard Repository Architecture
+## 1. Ready-to-Use GitHub Repository Template (`./templates/`)
 
-Every Cordova plugin repository must follow this directory layout:
+When asked to create a new Cordova plugin project for GitHub, scaffold the repository from the files in `./templates/`:
 
 ```text
-cordova-plugin-<name>/
-├── plugin.xml                  # Plugin manifest (Android & iOS configurations)
-├── package.json                # npm package metadata
-├── README.md                   # Installation, API documentation, and examples
+os-cordova-plugin-<slug>/
+├── .gitignore                   # Copy from templates/gitignore.template
+├── package.json                 # Copy from templates/package.json
+├── plugin.xml                   # Copy from templates/plugin.xml
+├── README.md                    # Copy from templates/README.md
+├── Package.swift                # Optional: required ONLY when adding external iOS pods/SPM on MABS 13
+├── hooks/                       # Optional: Node.js build hooks (after_prepare, after_plugin_install)
 ├── www/
-│   └── <name>.js               # JavaScript bridge with cordova.exec()
+│   └── <PluginName>.js          # Copy from templates/www/PluginName.js
 └── src/
     ├── android/
-    │   ├── <PluginName>.java   # Native Android implementation (extends CordovaPlugin)
-    │   └── build.gradle        # Optional Gradle dependencies (implementation '...')
+    │   └── <PluginName>.kt      # Copy from templates/src/android/PluginName.kt
     └── ios/
-        ├── <PluginName>.h      # Native iOS header (extends CDVPlugin)
-        ├── <PluginName>.m      # Native iOS implementation
-        └── PrivacyInfo.xcprivacy # Mandatory Apple Privacy Manifest (iOS 17+)
+        └── <PluginName>.swift   # Copy from templates/src/ios/PluginName.swift
 ```
+
+### Template Placeholder Replacement Table
+
+Replace these placeholders consistently across all scaffolded files:
+
+| Placeholder | Format | Example | Where it Must Match |
+| :--- | :--- | :--- | :--- |
+| `__PLUGIN_SLUG__` | `kebab-case` | `biometrics-auth` | Repo name (`os-cordova-plugin-biometrics-auth`), `plugin.xml` `id`, `package.json` `name` & `cordova.id` |
+| `__PLUGIN_NAME__` | `PascalCase` | `BiometricsAuth` | `www/<PluginName>.js` (`PLUGIN_NAME`), `plugin.xml` `<feature name="...">`, Kotlin class name, Swift `@objc(...)` & class name |
+| `__PLUGIN_PACKAGE__` | `lowercase` | `biometricsauth` | Android Kotlin package (`com.outsystems.plugins.biometricsauth`) and `plugin.xml` `target-dir` |
+| `__GITHUB_ORG__` | GitHub user/org | `MiguelRosaDev` | `plugin.xml` `<repo>` and `package.json` `repository` / `bugs` / `homepage` |
+| `__AUTHOR__` | String | `OutSystems Mobile Team` | `plugin.xml` `<author>` and `package.json` `author` |
+| `__PLUGIN_DESCRIPTION__` | Sentence | `Native biometric authentication plugin.` | `plugin.xml`, `package.json`, and `README.md` |
+
+> **Critical Identity Rule**:
+> 1. The shared identifier `__PLUGIN_NAME__` **must be identical** in `www/<PluginName>.js` (`exec(..., PLUGIN_NAME, ...)`), `plugin.xml` (`<feature name="__PLUGIN_NAME__">`), and the native class registrations.
+> 2. **Never** name a Swift plugin class after a Foundation or Swift standard library type (`Locale`, `Date`, `URL`, `Data`, `Error`). Because Swift plugin sources compile into the main app module in MABS, a colliding class name shadows that Foundation type for every other Swift plugin in the app.
+> 3. In `package.json`, the key inside `engines.cordovaDependencies` (e.g. `"1.0.0"`) **must equal** the root `"version"` field.
 
 ---
 
-## 2. The `plugin.xml` Manifest
+## 2. The 4 Production Cordova Plugin Archetypes
 
-The manifest tells Cordova and OutSystems MABS how to compile the native code and expose the JavaScript API.
+Choose the right architecture based on what the OutSystems 11 mobile application needs:
 
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
-        id="cordova-plugin-<name>"
-        version="1.0.0">
+### Archetype A: Standalone Modern Plugin (Kotlin + Swift)
+Use when building a brand-new native capability or multi-method utility plugin (e.g., `os-cordova-plugin-nos-utils`, `outsystems-plugin-esim`, `ASWebAuthentication`).
 
-    <name><PluginName></name>
-    <description>Native Cordova plugin for <description></description>
-    <license>MIT</license>
-    <keywords>cordova,outsystems,ecosystem</keywords>
-
-    <!-- JavaScript Bridge -->
-    <js-module src="www/<name>.js" name="<PluginName>">
-        <clobbers target="cordova.plugins.<PluginName>" />
-    </js-module>
-
-    <!-- ==================== ANDROID ==================== -->
-    <platform name="android">
-        <config-file target="res/xml/config.xml" parent="/*">
-            <feature name="<PluginName>">
-                <param name="android-package" value="com.outsystems.plugin.<name>.<PluginName>" />
-                <param name="onload" value="true" />
-            </feature>
-        </config-file>
-
-        <config-file target="AndroidManifest.xml" parent="/manifest">
-            <!-- Add necessary permissions here -->
-            <uses-permission android:name="android.permission.INTERNET" />
-        </config-file>
-
-        <source-file src="src/android/<PluginName>.java" target-dir="src/com/outsystems/plugin/<name>" />
-
-        <!-- Optional: Gradle dependencies -->
-        <!-- <framework src="src/android/build.gradle" custom="true" type="gradleReference" /> -->
-    </platform>
-
-    <!-- ==================== IOS ==================== -->
-    <platform name="ios">
-        <config-file target="config.xml" parent="/*">
-            <feature name="<PluginName>">
-                <param name="ios-package" value="<PluginName>" />
-                <param name="onload" value="true" />
-            </feature>
-        </config-file>
-
-        <!-- Permissions / Info.plist descriptions -->
-        <config-file target="*-Info.plist" parent="NSCameraUsageDescription">
-            <string>This app requires camera access to scan codes.</string>
-        </config-file>
-
-        <header-file src="src/ios/<PluginName>.h" />
-        <source-file src="src/ios/<PluginName>.m" />
-
-        <!-- Mandatory Apple Privacy Manifest (iOS 17+) -->
-        <resource-file src="src/ios/PrivacyInfo.xcprivacy" />
-
-        <!-- Optional: CocoaPods dependencies -->
-        <!-- <podspec>
-            <config>
-                <source url="https://cdn.cocoapods.org/"/>
-            </config>
-            <pods use_frameworks="true">
-                <pod name="SomeLibrary" spec="~> 1.0" />
-            </pods>
-        </podspec> -->
-    </platform>
-</plugin>
-```
+- **Engines baseline**: `cordova >=12.0.0`, `cordova-android >=13.0.0`, `cordova-ios >=7.1.0`.
+- **JS Namespace**: Exposes methods via `<clobbers target="cordova.plugins.custom.<PluginName>" />`.
+- **Android (Kotlin)**:
+  - Enable Kotlin automatically in `plugin.xml` inside `<config-file target="res/xml/config.xml" parent="/*">`:
+    ```xml
+    <preference name="GradlePluginKotlinEnabled" value="true" />
+    <preference name="GradlePluginKotlinCodeStyle" value="official" />
+    <preference name="GradlePluginKotlinVersion" value="1.9.24" />
+    ```
+  - Place source files in `src/android/<PluginName>.kt` mapped to `target-dir="app/src/main/kotlin/com/outsystems/plugins/<package>"`.
+  - Use `org.apache.cordova.PermissionHelper` for runtime permissions (`PermissionHelper.hasPermission`, `PermissionHelper.requestPermission`) and override `onRequestPermissionResult`.
+- **iOS (Swift — MABS 12 & MABS 13 Dual Compatibility)**:
+  - **Do NOT add `cordova-plugin-add-swift-support`**: `cordova-ios >= 7.1.0` supports Swift natively; legacy Swift-support hooks corrupt Xcode build settings across plugins.
+  - **Do NOT use a plain `import Cordova`**: The host app's bridging header already exposes `CDVPlugin`, and an unguarded `import Cordova` fails in MABS builds. Use `#if canImport(Cordova)` only when supporting Swift Package Manager:
+    ```swift
+    #if canImport(Cordova)
+    import Cordova
+    #endif
+    ```
+  - **Explicit `CDVPluginResult` type annotation & no optional chaining**:
+    Always declare `let pluginResult: CDVPluginResult = CDVPluginResult(...)` and call `pluginResult.setKeepCallbackAs(true)` **without `?.`**. In `cordova-ios 8` (MABS 13), `CDVPluginResult` initializers are non-optional, so `pluginResult?.` fails compilation.
+  - **Safe `NSLog` format string**:
+    Always write `NSLog("%@", "\(tag) message")` — never pass interpolated strings as the first argument (`NSLog("\(tag) \(input)")`), which crashes if `input` contains `%@` or `%`.
 
 ---
 
-## 3. JavaScript Interface (`www/<name>.js`)
+### Archetype B: Extension / SDK Bridge Plugin (`<dependency>` + `<merges>`)
+Use when you need to add missing methods to an existing massive plugin (e.g., `cordova-plugin-firebase-messaging-extension`, `cordova-plugin-firebase-analytics-extension`) or bridge two native SDKs (e.g., `cordova-plugin-firebase-salesforce-bridge`) **without forking the upstream repository**.
 
-The JavaScript layer uses `cordova.exec` to communicate across the bridge. Support both standard callbacks and Promise-based patterns:
-
-```javascript
-var exec = require('cordova/exec');
-
-var PLUGIN_NAME = '<PluginName>';
-
-var MyPlugin = {
-    performAction: function(options, successCallback, errorCallback) {
-        options = options || {};
-        exec(successCallback, errorCallback, PLUGIN_NAME, 'performAction', [options]);
-    },
-
-    // Promise-enabled helper
-    performActionAsync: function(options) {
-        return new Promise(function(resolve, reject) {
-            MyPlugin.performAction(options, resolve, reject);
-        });
-    }
-};
-
-module.exports = MyPlugin;
-```
+1. **Declare the upstream plugin as a `<dependency>` in `plugin.xml`**:
+   ```xml
+   <dependency id="cordova-outsystems-firebase-cloud-messaging"
+               url="https://github.com/OutSystems/cordova-outsystems-firebase-cloud-messaging.git#2.4.0-OS2" />
+   ```
+2. **Use `<merges>` instead of `<clobbers>` in `<js-module>`**:
+   This injects your new JS methods directly into the existing plugin's global object without overwriting its existing methods:
+   ```xml
+   <js-module name="FirebaseMessagingExtension" src="www/FirebaseMessagingExtension.js">
+       <merges target="cordova.plugins.firebase.messaging" />
+   </js-module>
+   ```
+3. **Register a dedicated `<feature>` for your extension class**:
+   `www/FirebaseMessagingExtension.js` calls `exec(resolve, reject, "FirebaseMessagingExtension", "hasPermission", [])`, which routes solely your new methods to your lightweight `FirebaseMessagingExtension` native class.
+4. **SDK Bridge Services (Android)**:
+   When bridging two push/messaging providers (e.g., Firebase FCM and Salesforce Marketing Cloud), register a routing `FirebaseMessagingService` in `AndroidManifest.xml` under `parent="/manifest/application"` that inspects incoming `RemoteMessage` payloads and forwards them to the appropriate SDK handler.
 
 ---
 
-## 4. Android Implementation (`<PluginName>.java`)
+### Archetype C: Plugins with External iOS Dependencies on MABS 13 (CocoaPods + SwiftPM)
+MABS 12 (`cordova-ios 7`) resolves iOS dependencies via CocoaPods, whereas MABS 13 (`cordova-ios 8`) builds plugins with external dependencies as **Swift Packages (SPM)**. To make a single plugin repository build on both MABS 12 and MABS 13:
 
-### Critical Rules:
-1. **Never block the UI Thread**: The `execute()` method runs on the main Android UI thread. Network requests, disk I/O, or heavy calculations must be dispatched to `cordova.getThreadPool().execute()`. Blocking the main thread triggers Android ANR (Application Not Responding) dialogs.
-2. **Always use AndroidX**: Never import `android.support.*`. Use `androidx.core.app.*`, `androidx.appcompat.*`, etc.
-
-```java
-package com.outsystems.plugin.<name>;
-
-import org.apache.cordova.CordovaPlugin;
-import org.apache.cordova.CallbackContext;
-import org.apache.cordova.PluginResult;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-public class <PluginName> extends CordovaPlugin {
-
-    @Override
-    public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
-        if ("performAction".equals(action)) {
-            final JSONObject options = args.optJSONObject(0);
-
-            // Execute long-running tasks in the background thread pool
-            cordova.getThreadPool().execute(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        // Native logic here
-                        JSONObject result = new JSONObject();
-                        result.put("status", "success");
-                        result.put("timestamp", System.currentTimeMillis());
-
-                        callbackContext.success(result);
-                    } catch (Exception e) {
-                        callbackContext.error("Execution error: " + e.getMessage());
-                    }
-                }
-            });
-            return true;
-        }
-        return false;
-    }
-}
-```
+1. **Set `package="swift"` on `<platform name="ios">` in `plugin.xml`**:
+   ```xml
+   <platform name="ios" package="swift">
+   ```
+2. **Mark every `<pod>` with `nospm="true"`**:
+   `cordova-ios 8` ignores `<pod nospm="true" />` (using `Package.swift` instead), while `cordova-ios 7` installs it via CocoaPods:
+   ```xml
+   <podspec>
+       <config>
+           <source url="https://cdn.cocoapods.org/" />
+       </config>
+       <pods use_frameworks="true">
+           <pod name="FirebaseRemoteConfig" spec="~> 10.29.0" nospm="true" />
+       </pods>
+   </podspec>
+   ```
+3. **Add a root `Package.swift`**:
+   The library product name **must match the plugin `id`** in `plugin.xml`, depend on `cordova-ios` (`branch: "master"`, which `cordova-ios` rewrites locally during build), and set `path: "src/ios"`.
+4. **Guard the Cordova import in Swift**:
+   ```swift
+   #if canImport(Cordova)
+   import Cordova
+   #endif
+   ```
 
 ---
 
-## 5. iOS Implementation (`<PluginName>.h` & `<PluginName>.m`)
+### Archetype D: Build Hooks, Extensibility Preferences & Native Extensions
+Use when a plugin must customize `AndroidManifest.xml`, iOS `Entitlements-*.plist`, `*-Info.plist`, `AppDelegate`, or bundle native AppWidgets (`Cordova-ios-widget-plugin`, `Cordova-android-widget-plugin`, `cordova-deeplinks-plugin`, `outsystems-plugin-esim`).
 
-### Header (`<PluginName>.h`):
-```objc
-#import <Cordova/CDVPlugin.h>
-
-@interface <PluginName> : CDVPlugin
-
-- (void)performAction:(CDVInvokedUrlCommand*)command;
-
-@end
-```
-
-### Implementation (`<PluginName>.m`):
-```objc
-#import "<PluginName>.h"
-
-@implementation <PluginName>
-
-- (void)performAction:(CDVInvokedUrlCommand*)command {
-    // Run in background queue to keep UI responsive
-    [self.commandDelegate runInBackground:^{
-        NSDictionary* options = [command.arguments objectAtIndex:0];
-
-        @try {
-            // Native logic here
-            NSDictionary* response = @{
-                @"status": @"success",
-                @"timestamp": @([[NSDate date] timeIntervalSince1970])
-            };
-
-            CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:response];
-            [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-        }
-        @catch (NSException *exception) {
-            CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:exception.reason];
-            [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-        }
-    }];
-}
-
-@end
-```
+1. **Configurable Extensibility Variables (`<preference>`)**:
+   Declare `<preference name="VAR_NAME" default="default_value" />` in `plugin.xml` so OutSystems applications can override it in Extensibility Configurations:
+   ```xml
+   <preference name="CAMERAUSAGEDESCRIPTION" default="Camera access is required." />
+   <config-file target="*-Info.plist" parent="NSCameraUsageDescription">
+       <string>$CAMERAUSAGEDESCRIPTION</string>
+   </config-file>
+   ```
+2. **Node.js Build Hooks (`hooks/*.js`)**:
+   - **Never use shell scripts (`.sh`)** — always use Node.js scripts wired via `<hook type="after_prepare" src="hooks/script.js" />` or `after_plugin_install`.
+   - **Overriding Conflicting Android Manifest Attributes (`hooks/disable_backup.js`)**:
+     When 3rd-party SDKs (like AppsFlyer) hardcode `android:allowBackup="true"`, use an `after_prepare` hook that reads `platforms/android/app/src/main/AndroidManifest.xml`, adds `xmlns:tools="http://schemas.android.com/tools"`, sets `android:allowBackup`, and appends `tools:replace="android:allowBackup"` on `<application>`.
+   - **Injecting iOS Entitlements (`hooks/fixAppEntitlements.js`)**:
+     To add special capabilities (e.g., `com.apple.developer.associated-domains`, `com.apple.security.application-groups`, or carrier/eSIM entitlements), write an `after_prepare` / `after_plugin_install` Node.js hook that merges the required keys into both `Entitlements-Debug.plist` and `Entitlements-Release.plist`.
+3. **iOS `AppDelegate` Categories & Android Receivers/Widgets**:
+   - To intercept iOS lifecycle events or Universal Links without replacing `AppDelegate`, add an Objective-C category (`AppDelegate+<Plugin>.h` and `AppDelegate+<Plugin>.m`) via `<header-file>` and `<source-file>`.
+   - For Android Home Screen Widgets (`AppWidgetProvider`), register the `<receiver>` in `AndroidManifest.xml` (`parent="/manifest/application"`) and copy widget layout/info XMLs using `<resource-file src="src/android/res/layout/..." target="res/layout/..." />`.
 
 ---
 
-## 6. Apple Privacy Manifest (`PrivacyInfo.xcprivacy`)
+## 3. Pre-Release Checklist for OutSystems MABS
 
-Since iOS 17 (mandatory for App Store submissions), Apple requires a `PrivacyInfo.xcprivacy` file bundled with every plugin. Place it in `src/ios/PrivacyInfo.xcprivacy`:
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>NSPrivacyTracking</key>
-    <false/>
-    <key>NSPrivacyTrackingDomains</key>
-    <array/>
-    <key>NSPrivacyCollectedDataTypes</key>
-    <array/>
-    <key>NSPrivacyAccessedAPITypes</key>
-    <array/>
-</dict>
-</plist>
-```
-
----
-
-## 7. MABS Compatibility Rules Checklist
-
-Before pushing a Cordova plugin for use with OutSystems MABS:
-1. **No Hardcoded Versions**: In Gradle / CocoaPods, avoid pinning hard dependencies (e.g. `com.google.android.gms:play-services:18.0.0`) that conflict with other plugins. Use dynamic ranges or OutSystems standard variables.
-2. **No Custom Hook Scripts**: Avoid shell script hooks (`<hook type="before_build" src="scripts/run.sh" />`) as MABS cloud build agents restrict arbitrary shell execution for security.
-3. **AndroidX Compatibility**: Ensure all Java/Kotlin dependencies support AndroidX.
-4. **Git Tags**: Always tag releases (e.g. `v1.0.0`) on GitHub so OutSystems Extensibility Configurations can pin a stable release:
-   `"url": "https://github.com/User/Repo.git#v1.0.0"`
+Before pushing and tagging the repository on GitHub:
+1. **Identity Sync Check**: Verify `__PLUGIN_NAME__` matches across `www/<PluginName>.js`, `plugin.xml` (`<feature>`), `<PluginName>.kt`, and `<PluginName>.swift` (`@objc(...)`).
+2. **Version Sync Check**: Verify `version` in `plugin.xml`, `version` in `package.json`, and the `engines.cordovaDependencies["<version>"]` key in `package.json` are all identical.
+3. **Thread Safety**: Any blocking I/O, network call, or heavy computation on Android runs inside `cordova.threadPool.execute { ... }`, and UI updates (such as `webView` interactions) run inside `cordova.activity.runOnUiThread { ... }`. On iOS, background work runs inside `commandDelegate.run(inBackground: { ... })` and UI presentations run on `DispatchQueue.main.async`.
+4. **Git Tagging**: Always create a semantic release tag (e.g., `v1.0.0`) so OutSystems 11 Extensibility Configurations can pin an immutable commit:
+   ```json
+   {
+       "plugin": {
+           "url": "https://github.com/<org>/os-cordova-plugin-<slug>.git#v1.0.0"
+       }
+   }
+   ```

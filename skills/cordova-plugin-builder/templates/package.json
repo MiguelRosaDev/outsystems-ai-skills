@@ -1,0 +1,44 @@
+{
+  "name": "os-cordova-plugin-__PLUGIN_SLUG__",
+  "displayName": "__PLUGIN_NAME__ OutSystems Cordova Plugin",
+  "version": "1.0.0",
+  "main": "www/__PLUGIN_NAME__.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "cordova",
+    "ecosystem:cordova",
+    "cordova-android",
+    "cordova-ios",
+    "outsystems",
+    "__PLUGIN_SLUG__"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/__GITHUB_ORG__/os-cordova-plugin-__PLUGIN_SLUG__.git"
+  },
+  "bugs": {
+    "url": "https://github.com/__GITHUB_ORG__/os-cordova-plugin-__PLUGIN_SLUG__/issues"
+  },
+  "engines": {
+    "cordovaDependencies": {
+      "1.0.0": {
+        "cordova": ">=12.0.0",
+        "cordova-android": ">=13.0.0",
+        "cordova-ios": ">=7.1.0"
+      }
+    }
+  },
+  "homepage": "https://github.com/__GITHUB_ORG__/os-cordova-plugin-__PLUGIN_SLUG__#readme",
+  "author": "__AUTHOR__",
+  "license": "MIT",
+  "description": "__PLUGIN_DESCRIPTION__",
+  "cordova": {
+    "id": "os-cordova-plugin-__PLUGIN_SLUG__",
+    "platforms": [
+      "android",
+      "ios"
+    ]
+  }
+}
