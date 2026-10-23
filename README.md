@@ -2,15 +2,15 @@
 
 [![GitHub repo](https://img.shields.io/badge/GitHub-MiguelRosaDev%2Foutsystems--skills-blue.svg)](https://github.com/MiguelRosaDev/outsystems-skills)
 [![OutSystems ModelAPI](https://img.shields.io/badge/OutSystems-ModelAPI%20%2F%20O11-red.svg)](https://www.outsystems.com/)
-[![Antigravity Skills](https://img.shields.io/badge/Antigravity-Custom%20Skills-green.svg)](https://github.com/MiguelRosaDev)
+[![AI Skills](https://img.shields.io/badge/AI%20Skills-Agentic%20Workflows-green.svg)](https://github.com/MiguelRosaDev)
 
-A collection of specialized agentic skills and automated workflows for AI coding assistants (such as **Google Antigravity**) interacting with **OutSystems 11 / ODC** via the **ModelAPI** and MCP servers (e.g., `os11-oml-transformer` / Kings3).
+A collection of specialized skills and automated workflows for AI models and coding assistants (Claude, Cursor, Copilot, ChatGPT, or custom AI agents) interacting with **OutSystems 11 / ODC** via the **ModelAPI** and MCP servers (such as `os11-oml-transformer`).
 
 ---
 
 ## 🚀 The Problem Solved
 
-When AI coding assistants generate or edit OutSystems logic flows programmatically through the ModelAPI:
+When AI coding models generate or edit OutSystems logic flows programmatically through the ModelAPI:
 - **No Automatic Positioning**: By default, created nodes (Start, Assigns, Ifs, Action Calls, Message, Ends) share identical coordinates or sit directly on top of each other.
 - **Visual "Spaghetti"**: Connectors cross through nodes, loop backs tangle across branches, and multiple branches converge into messy shared tails.
 - **Missing Context**: Assigns and If conditions retain default or blank labels in Service Studio (`Assign`, `If`), requiring developers to open every node to inspect what it does.
@@ -63,7 +63,7 @@ outsystems-skills/
 ├── .gitignore
 └── skills/
     ├── flow-layout/
-    │   ├── SKILL.md            # Comprehensive instructions for the AI assistant
+    │   ├── SKILL.md            # Comprehensive instructions for any AI model
     │   ├── check-flow.cs       # Read-only ModelAPI checker script
     │   └── polish-flow.cs      # Layout engine, routing, and labeling script
     └── css-format/
@@ -72,35 +72,21 @@ outsystems-skills/
 
 ---
 
-## 💻 How to Install & Use
+## 💻 How to Use with Any AI Model or Agent
 
-### Option A: Global Installation in Antigravity (Recommended)
-Make these skills available to the AI assistant across all your projects:
+These skills can be used with **any AI coding assistant, LLM, or agentic IDE**:
 
-```bash
-# 1. Create your Antigravity skills directory if it doesn't exist
-mkdir -p ~/.gemini/config/skills
+### Option A: Use as System Instructions / Agent Skills
+Include the instructions from [`skills/flow-layout/SKILL.md`](file:///skills/flow-layout/SKILL.md) and [`skills/css-format/SKILL.md`](file:///skills/css-format/SKILL.md) into your AI setup:
+* **Cursor / Windsurf**: Add to `.cursorrules` or `.windsurfrules`.
+* **GitHub Copilot**: Add to `.github/copilot-instructions.md`.
+* **Claude / ChatGPT**: Add as Project Knowledge, Custom Instructions, or directly in your system prompt.
+* **Agentic Frameworks & MCP Clients**: Mount the `skills/` directory into your agent's skills path or workspace instructions.
 
-# 2. Clone the repository
-git clone https://github.com/MiguelRosaDev/outsystems-skills.git /tmp/outsystems-skills
+Whenever the model creates or updates an OutSystems action via ModelAPI or MCP, instruct it to apply the `flow-layout` rules and scripts.
 
-# 3. Copy the skills into your global config
-cp -r /tmp/outsystems-skills/skills/* ~/.gemini/config/skills/
-```
-
-### Option B: Project-Level Installation
-To use these skills only in a specific workspace/repository:
-
-```bash
-# In your project root:
-mkdir -p .agents/skills
-cp -r /path/to/outsystems-skills/skills/* .agents/skills/
-```
-
-Antigravity will automatically discover `.agents/skills/flow-layout` and `.agents/skills/css-format`.
-
-### Option C: Manual Execution with OutSystems MCP
-If running scripts directly through the `os11-oml-transformer` MCP:
+### Option B: Direct Execution with OutSystems ModelAPI / MCP
+If running scripts directly through an OutSystems ModelAPI tool or MCP server (e.g. `os11-oml-transformer`):
 
 1. **Format & Layout Flow**:
    Paste [`polish-flow.cs`](file:///skills/flow-layout/polish-flow.cs) into `applyModelApiCode` (customize the `Spec` dictionary with your action name and node labels), then run `omlMerge`.
