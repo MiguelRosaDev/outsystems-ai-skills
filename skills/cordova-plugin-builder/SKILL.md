@@ -57,7 +57,7 @@ Replace these placeholders consistently across all scaffolded files:
 Choose the right architecture based on what the OutSystems 11 mobile application needs:
 
 ### Archetype A: Standalone Modern Plugin (Kotlin + Swift)
-Use when building a brand-new native capability or multi-method utility plugin (e.g., `os-cordova-plugin-nos-utils`, `outsystems-plugin-esim`, `ASWebAuthentication`).
+Use when building a brand-new native capability or multi-method utility plugin (e.g., `os-cordova-plugin-device-utils`, `outsystems-plugin-esim`, `ASWebAuthentication`).
 
 - **Engines baseline**: `cordova >=12.0.0`, `cordova-android >=13.0.0`, `cordova-ios >=7.1.0`.
 - **JS Namespace**: Exposes methods via `<clobbers target="cordova.plugins.custom.<PluginName>" />`.
