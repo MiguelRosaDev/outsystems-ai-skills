@@ -1,26 +1,26 @@
-# OutSystems AI Skills (`outsystems-ai-skills`)
+# OutSystems 11 AI Skills (`outsystems-ai-skills`)
 
 [![GitHub repo](https://img.shields.io/badge/GitHub-MiguelRosaDev%2Foutsystems--ai--skills-blue.svg)](https://github.com/MiguelRosaDev/outsystems-ai-skills)
-[![OutSystems ModelAPI](https://img.shields.io/badge/OutSystems-11%20%2F%20ODC%20%2F%20MCP-red.svg)](https://www.outsystems.com/)
-[![AI Skills](https://img.shields.io/badge/AI%20Skills-17%20Workflows-green.svg)](https://github.com/MiguelRosaDev/outsystems-ai-skills)
+[![OutSystems 11](https://img.shields.io/badge/OutSystems%2011-ModelAPI%20%2F%20MCP-red.svg)](https://www.outsystems.com/)
+[![AI Skills](https://img.shields.io/badge/AI%20Skills-Agentic%20Workflows-green.svg)](https://github.com/MiguelRosaDev/outsystems-ai-skills)
 
-A comprehensive collection of **17 specialized AI skills, architectural guardrails, and automated workflows** for AI models and coding assistants (Claude, Cursor, Copilot, ChatGPT, or custom MCP agents) interacting with **OutSystems 11 / ODC** via the **ModelAPI** and MCP servers (such as `os11-oml-transformer`).
+A comprehensive collection of **specialized AI skills, architectural guardrails, and automated workflows** for AI models and coding assistants (Claude, Cursor, Copilot, ChatGPT, or custom MCP agents) interacting with **OutSystems 11 (O11)** via the **ModelAPI** and MCP servers (such as `os11-oml-transformer`).
 
 ---
 
 ## 🚀 Why This Repository Exists
 
-When AI coding models generate or modify OutSystems applications through ModelAPI / MCP tools without specialized instructions, they introduce severe architectural and visual problems:
+When AI coding models generate or modify **OutSystems 11** applications through ModelAPI / MCP tools without specialized instructions, they introduce severe architectural and visual problems:
 * **Visual Knotting & Unlinked Comments**: Flow nodes generated via API sit stacked on top of each other at coordinate `(0,0)`, and comments either float unpinned or turn into giant multi-paragraph banners across the canvas.
 * **Architecture & Data Debt**: Models create circular dependencies, violate 4-Layer Canvas (4LC) standards, misuse foreign key `Delete Rules`, or place `Binary Data` directly inside operational tables.
 * **Runtime & Database Bottlenecks**: Models place database aggregates inside `ForEach` loops ($N+1$ queries), cause infinite UI re-render loops in `OnRender`, or build monolithic timers that roll back after 20-minute timeouts.
 * **Security & Encapsulation Flaws**: Entities are exposed with public write access instead of read-only CRUD wrappers, and server actions omit server-side `Check<Role>Role` checks.
 
-This repository equips any AI model with **production-grade OutSystems engineering rules** aligned with official OutSystems 11 documentation, TrueChange, and AI Mentor Studio.
+This repository equips any AI model with **production-grade OutSystems 11 engineering rules** aligned with official OutSystems 11 documentation, TrueChange, and AI Mentor Studio.
 
 ---
 
-## 🧭 Quick Reference: All 17 Skills
+## 🧭 Skills Catalog
 
 | Category | Skill | Purpose |
 | :--- | :--- | :--- |
