@@ -35,7 +35,8 @@ This repository equips any AI model with **production-grade OutSystems 11 engine
 | **Logic & Performance** | [`timers-and-bpt-patterns`](skills/timers-and-bpt-patterns/SKILL.md) | Heavy Timers (`WakeTimer` + soft timeout + batch `CommitTransaction` + kill-switch) & Light BPT vs Standard BPT |
 | **Logic & Performance** | [`exception-handling-and-logging`](skills/exception-handling-and-logging/SKILL.md) | Exception hierarchy, `Abort Transaction` rollback rules for custom error tables, and structured logging |
 | **Integrations & Security** | [`integration-service-patterns`](skills/integration-service-patterns/SKILL.md) | `_IS` wrapper modules, canonical domain structures, `OnBeforeRequest`/`OnAfterResponse`, and timeouts |
-| **Integrations & Security** | [`security-rbac-guardrails`](skills/security-rbac-guardrails/SKILL.md) | Server-side `Check<Role>Role` validation, Advanced SQL injection prevention, and PII log masking |
+| **Integrations & Security** | [`security-rbac-guardrails`](skills/security-rbac-guardrails/SKILL.md) | Server-side `Check<Role>Role` validation, Advanced SQL injection prevention, and secure coding |
+| **Integrations & Security** | [`log-security-and-pii-masking`](skills/log-security-and-pii-masking/SKILL.md) | GDPR/RGPD guardrails preventing customer PII (NIF, Email, Name, Phone/MSISDN, IBAN) & secrets in logs |
 | **Mobile Plugins** | [`cordova-plugin-wrapper`](skills/cordova-plugin-wrapper/SKILL.md) | OutSystems mobile wrapper modules: Extensibility Configurations JSON, `$resolve()` JS nodes, and browser fallbacks |
 | **Mobile Plugins** | [`cordova-plugin-builder`](skills/cordova-plugin-builder/SKILL.md) | Complete GitHub repo template (`templates/`) & patterns for MABS 12/13 (Kotlin + Swift, `<merges>` extensions, SPM/Pods, and hooks) |
 | **Standards & i18n** | [`outsystems-naming-conventions`](skills/outsystems-naming-conventions/SKILL.md) | PascalCase `Verb + Noun` actions, `ST_` structures, `Is/Has/Can` booleans, and Logic folder organization |
@@ -77,6 +78,8 @@ outsystems-ai-skills/
     ├── exception-handling-and-logging/
     │   └── SKILL.md
     ├── integration-service-patterns/
+    │   └── SKILL.md
+    ├── log-security-and-pii-masking/
     │   └── SKILL.md
     ├── multilanguage-translations/
     │   └── SKILL.md
