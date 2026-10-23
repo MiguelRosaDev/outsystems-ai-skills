@@ -1,57 +1,77 @@
 # OutSystems Skills for AI Coding Assistants
 
 [![GitHub repo](https://img.shields.io/badge/GitHub-MiguelRosaDev%2Foutsystems--skills-blue.svg)](https://github.com/MiguelRosaDev/outsystems-skills)
-[![OutSystems ModelAPI](https://img.shields.io/badge/OutSystems-ModelAPI%20%2F%20O11-red.svg)](https://www.outsystems.com/)
+[![OutSystems ModelAPI](https://img.shields.io/badge/OutSystems-ModelAPI%20%2F%20O11%20%2F%20ODC-red.svg)](https://www.outsystems.com/)
 [![AI Skills](https://img.shields.io/badge/AI%20Skills-Agentic%20Workflows-green.svg)](https://github.com/MiguelRosaDev)
 
-A collection of specialized skills and automated workflows for AI models and coding assistants (Claude, Cursor, Copilot, ChatGPT, or custom AI agents) interacting with **OutSystems 11 / ODC** via the **ModelAPI** and MCP servers (such as `os11-oml-transformer`).
+A comprehensive suite of specialized skills, best practices, and automated workflows for AI models and coding assistants (Claude, Cursor, Copilot, ChatGPT, or custom AI agents) interacting with **OutSystems 11 / ODC** via the **ModelAPI** and MCP servers (such as `os11-oml-transformer`).
 
 ---
 
-## 🚀 The Problem Solved
+## 🚀 Why This Repository Exists
 
-When AI coding models generate or edit OutSystems logic flows programmatically through the ModelAPI:
-- **No Automatic Positioning**: By default, created nodes (Start, Assigns, Ifs, Action Calls, Message, Ends) share identical coordinates or sit directly on top of each other.
-- **Visual "Spaghetti"**: Connectors cross through nodes, loop backs tangle across branches, and multiple branches converge into messy shared tails.
-- **Missing Context**: Assigns and If conditions retain default or blank labels in Service Studio (`Assign`, `If`), requiring developers to open every node to inspect what it does.
-- **Unlinked Comments**: Explanatory comments float disconnected from the nodes they describe.
+When AI coding models generate or modify OutSystems applications through ModelAPI / MCP tools, they lack visual and architectural awareness by default:
+* **Visual Knotting**: Flow nodes are placed on top of each other at coordinate `(0,0)`, creating tangled spaghetti lines in Service Studio.
+* **Architecture Debt**: Models easily create circular dependencies, upward module references, or violate 4-Layer Canvas (4LC) standards.
+* **Database Bottlenecks**: Models tend to write database aggregates inside `ForEach` loops ($N+1$ queries), fail to index filter attributes, or write runtime updates to Site Properties.
+* **Security & Encapsulation Flaws**: Entities are accidentally exposed with public write access instead of read-only wrappers, and server actions lack role checks (`Check<Role>Role`).
 
-Opening an action modified this way in **Service Studio** results in an unreadable visual knot.
-
-The **`outsystems-flow-layout`** skill completely fixes this by enforcing deterministic grid layout, clean branch routing, semantic labeling, and automated structural validation.
+This repository provides **executable guardrails and instructions** that guide AI models to produce clean, maintainable, performant, and secure OutSystems code.
 
 ---
 
 ## 📦 Included Skills
 
-### 1. `outsystems-flow-layout`
-Ensures all Server Actions, Screen (Client) Actions, and Data Actions follow clean visual architecture before changes are merged.
+### 🎨 1. `outsystems-flow-layout`
+Visual flow layout engine and structural health checker for Server, Screen, and Data Actions.
+* **Deterministic Grid**: Standardized spacing (columns $\Delta X = 2286$, rows $\Delta Y = 1829$; Start at `2743, 1371`).
+* **Zero Crossings**: Connectors that would cross nodes are cleanly routed through dummy Assign nodes (`Route` / `Loop back`).
+* **Branch Isolation**: 1 Assign and 1 End per branch to eliminate cross-screen convergence lines.
+* **Semantic Labels & Linked Comments**: Human-readable labels on every Assign/If, and comments linked to nodes via `comment.CreateConnector(node)`.
+* **Structural Checker (`check-flow.cs`)**: Verifies 0 crossings, 0 overlapping nodes, 0 unreachable nodes, and 0 unlabelled logic elements.
 
-* **Grid-Based Alignment**:
-  * Node coordinates follow a standardized grid: columns are **2286** units apart, rows **1829** units apart (Start node placed at `X=2743, Y=1371`).
-  * Main execution path flows **straight down**.
-  * True branches of `If` nodes branch to the **right**.
-  * `ForEach` loop bodies branch right and resume downwards after the loop.
-  * Exception Handlers occupy a dedicated column to the right.
-* **Zero Connector Crossings**:
-  * When a connector would cross over another node (e.g., a loop back or far merge), it is automatically routed through **dummy Assign nodes** (empty assigns labelled `Route` or `Loop back`) placed at every turn through free grid cells.
-* **Branch Isolation (1 Assign + 1 End per branch)**:
-  * Eliminates long cross-screen connector lines by giving each branch its own dedicated Assign and End node side by side.
-* **Readable Labels**:
-  * Every Assign, If, ForEach, and Message node receives a concise, human-readable label explaining its action (e.g., `Set output: Reply, IsDone`, `Stale reply?`).
-* **Connected Comments**:
-  * Action-level comments sit at the top right of the flow.
-  * Logic comments are programmatically linked to the exact nodes they explain via `comment.CreateConnector(node)`.
-* **Automated Checker (`check-flow.cs`)**:
-  * Read-only structural verification run via ModelAPI diagnostics.
-  * Target: **0 crossing connectors, 0 overlapping nodes, 0 unreachable nodes, 0 open-ended branches, 0 unlabelled nodes**.
+### 🏛️ 2. `architecture-canvas-4lc`
+Guards against architectural erosion and enforces the official OutSystems 4-Layer Canvas.
+* **Layer Hierarchy**: Orchestration (O) ➔ End-User (E) ➔ Core (C) ➔ Foundation (F).
+* **The 3 Golden Rules**: No upward dependencies, no side dependencies in End-User, and zero circular dependencies in Core.
+* **Module Suffixes**: Enforces standardized naming (`_CS`, `_BL`, `_IS`, `_CW`, `_API`, `_Th`, `_Lib`).
 
-### 2. `css-format`
-Enforces clean, maintainable CSS formatting whenever stylesheets (themes, screens, or blocks) are created or updated in OutSystems:
-* **One declaration per line** with 4-space indentation (matching native OutSystems Studio convention).
-* **Opening brace on selector line**, closing brace on its own line.
-* **Full-sheet replacement** rather than appending messy one-line override blocks.
-* Automated formatting support via Prettier (`npx prettier --parser css --tab-width 4`).
+### 🔒 3. `crud-wrapper-pattern`
+Encapsulates Core Services (`_CS`) data entities with secure CRUD wrapper actions.
+* **Read-Only Entities**: Enforces `Public = Yes` with `Expose Read Only = Yes`.
+* **Mandatory Audit Attributes**: Injects `CreatedBy`, `CreatedOn`, `UpdatedBy`, `UpdatedOn`, and `IsActive` (soft-delete).
+* **Standard Action Suite**: Generates `<Entity>_Create`, `<Entity>_Update`, `<Entity>_Get`, `<Entity>_GetForUpdate`, and `<Entity>_Delete`.
+* **Integrity & Rollback**: Validates business constraints and handles `Abort Transaction` safely.
+
+### ⚡ 4. `performance-anti-patterns`
+Performance guardrails and database optimization rules.
+* **Zero Queries in Loops**: Prohibits Aggregates, SQL queries, or server action fetches inside `ForEach` loops ($N+1$ anti-pattern).
+* **Aggregate Optimization**: Rules for `Fetch = At start` vs `Fetch = Only on demand`, pagination, and `Max Records`.
+* **Runtime Site Properties**: Forbids runtime programmatic writes to Site Properties (which invalidate cluster cache).
+* **Indexing Guidelines**: Mandatory single/composite indexes on foreign keys and search filters.
+
+### 🏷️ 5. `outsystems-naming-conventions`
+Official OutSystems naming standards and folder organization.
+* **Logic Actions**: PascalCase with `Verb + Noun` formula (`Customer_GetById`, `Invoice_CalculateTotal`).
+* **Folder Structure**: Clean organization in the Logic tab (`Public`, `Internal`, `CRUD`, `Validations`, `Sync`).
+* **Variables & DTOs**: Prefix `ST_` for structures, `Is/Has/Can` for booleans, and `...List` for list collections.
+
+### 🛡️ 6. `security-rbac-guardrails`
+Role-Based Access Control (RBAC) and data protection.
+* **Server-Side Validation**: Mandatory `Check<Role>Role(UserId: GetUserId())` at the start of all public server actions.
+* **SQL Injection Prevention**: Safe parameter binding (`@Param` with `Expand Inline = No`) and whitelisting dynamic clauses.
+* **Data Masking**: Prevents logging sensitive tokens, passwords, or PII in `LogMessage` and exception logs.
+
+### 📱 7. `cordova-plugin-wrapper`
+Patterns for wrapping Cordova and Capacitor native plugins in OutSystems mobile modules.
+* **Extensibility Configurations**: JSON structure with pinned repository release tags and preferences.
+* **Plugin Availability Checks**: Graceful fallback and error reporting if running on desktop browser preview.
+* **Asynchronous Callbacks**: Strict usage of `$resolve()` and `$reject()` in JavaScript nodes to prevent UI freezes.
+
+### 💅 8. `css-format`
+Formatting standards for OutSystems StyleSheets (themes, screens, and blocks).
+* 4-space indentation, one declaration per line, opening brace on selector line.
+* Full stylesheet replacement instead of appending competing one-line overrides.
 
 ---
 
@@ -63,35 +83,42 @@ outsystems-skills/
 ├── .gitignore
 └── skills/
     ├── outsystems-flow-layout/
-    │   ├── SKILL.md            # Comprehensive instructions for any AI model
-    │   ├── check-flow.cs       # Read-only ModelAPI checker script
-    │   └── polish-flow.cs      # Layout engine, routing, and labeling script
+    │   ├── SKILL.md
+    │   ├── check-flow.cs
+    │   └── polish-flow.cs
+    ├── architecture-canvas-4lc/
+    │   └── SKILL.md
+    ├── crud-wrapper-pattern/
+    │   └── SKILL.md
+    ├── performance-anti-patterns/
+    │   └── SKILL.md
+    ├── outsystems-naming-conventions/
+    │   └── SKILL.md
+    ├── security-rbac-guardrails/
+    │   └── SKILL.md
+    ├── cordova-plugin-wrapper/
+    │   └── SKILL.md
     └── css-format/
-        └── SKILL.md            # CSS formatting rules and workflows
+        └── SKILL.md
 ```
 
 ---
 
 ## 💻 How to Use with Any AI Model or Agent
 
-These skills can be used with **any AI coding assistant, LLM, or agentic IDE**:
+These skills can be used with **any AI coding assistant, LLM, or agentic IDE** (Cursor, Claude, Copilot, ChatGPT, Antigravity, or custom agents):
 
 ### Option A: Use as System Instructions / Agent Skills
-Include the instructions from [`skills/outsystems-flow-layout/SKILL.md`](file:///skills/outsystems-flow-layout/SKILL.md) and [`skills/css-format/SKILL.md`](file:///skills/css-format/SKILL.md) into your AI setup:
+Include the instructions from any of the `skills/<skill-name>/SKILL.md` files into your AI environment:
 * **Cursor / Windsurf**: Add to `.cursorrules` or `.windsurfrules`.
 * **GitHub Copilot**: Add to `.github/copilot-instructions.md`.
-* **Claude / ChatGPT**: Add as Project Knowledge, Custom Instructions, or directly in your system prompt.
-* **Agentic Frameworks & MCP Clients**: Mount the `skills/` directory into your agent's skills path or workspace instructions.
-
-Whenever the model creates or updates an OutSystems action via ModelAPI or MCP, instruct it to apply the `outsystems-flow-layout` rules and scripts.
+* **Claude / ChatGPT**: Add as Project Knowledge, Custom Instructions, or directly into system prompts.
+* **Agentic Workspaces**: Mount the `skills/` directory into your agent's skills path (`.agents/skills/` or global config).
 
 ### Option B: Direct Execution with OutSystems ModelAPI / MCP
-If running scripts directly through an OutSystems ModelAPI tool or MCP server (e.g. `os11-oml-transformer`):
-
-1. **Format & Layout Flow**:
-   Paste [`polish-flow.cs`](file:///skills/outsystems-flow-layout/polish-flow.cs) into `applyModelApiCode` (customize the `Spec` dictionary with your action name and node labels), then run `omlMerge`.
-2. **Verify Flow Health**:
-   Paste [`check-flow.cs`](file:///skills/outsystems-flow-layout/check-flow.cs) into `applyModelApiCode` to get an instant report on crossing connectors, overlapping nodes, and missing descriptions.
+For ModelAPI C# scripts (e.g. in `outsystems-flow-layout`):
+1. Paste [`polish-flow.cs`](file:///skills/outsystems-flow-layout/polish-flow.cs) into `applyModelApiCode` (customize the `Spec` dictionary with action names and labels), then run `omlMerge`.
+2. Paste [`check-flow.cs`](file:///skills/outsystems-flow-layout/check-flow.cs) into `applyModelApiCode` to get an instant health diagnostic.
 
 ---
 
