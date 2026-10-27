@@ -32,6 +32,7 @@ This repository equips any AI model with **production-grade OutSystems 11 engine
 | **Architecture & Data** | [`architecture-canvas-4lc`](skills/architecture-canvas-4lc/SKILL.md) | 4-Layer Canvas (Orchestration, End-User, Core, Foundation), the 3 Golden Rules, and module suffixes |
 | **Architecture & Data** | [`data-modeling-best-practices`](skills/data-modeling-best-practices/SKILL.md) | Foreign Key Delete Rules (`Protect`, `Delete`, `Ignore`), 1-to-1 Binary Data isolation, and Static Entities |
 | **Architecture & Data** | [`crud-wrapper-pattern`](skills/crud-wrapper-pattern/SKILL.md) | Read-only entity exposure, audit attributes, and `<Entity>_Create/Update/Get/Delete` wrapper actions |
+| **Architecture & Data** | [`advanced-sql-and-index-tuning`](skills/advanced-sql-and-index-tuning/SKILL.md) | High-performance Advanced SQL for **SQL Server (T-SQL)** & **Oracle (PL/SQL)**, SARGability, and Entity Index design |
 | **Logic & Performance** | [`performance-anti-patterns`](skills/performance-anti-patterns/SKILL.md) | Prevents $N+1$ queries inside loops, enforces Aggregate fetch optimization, indexing, and forbids runtime Site Property writes |
 | **Logic & Performance** | [`client-action-single-server-call`](skills/client-action-single-server-call/SKILL.md) | Enforces at most 1 Server Action call per Client Action by encapsulating multiple server calls into a single orchestrator Server Action |
 | **Logic & Performance** | [`timers-and-bpt-patterns`](skills/timers-and-bpt-patterns/SKILL.md) | Heavy Timers (`WakeTimer` + soft timeout + batch `CommitTransaction` + kill-switch) & Light BPT vs Standard BPT |
@@ -54,6 +55,8 @@ outsystems-ai-skills/
 ├── README.md
 ├── .gitignore
 └── skills/
+    ├── advanced-sql-and-index-tuning/
+    │   └── SKILL.md
     ├── architecture-canvas-4lc/
     │   └── SKILL.md
     ├── client-action-single-server-call/
