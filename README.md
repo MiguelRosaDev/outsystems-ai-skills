@@ -39,6 +39,7 @@ This repository equips any AI model with **production-grade OutSystems 11 engine
 | **Logic & Performance** | [`exception-handling-and-logging`](skills/exception-handling-and-logging/SKILL.md) | Exception hierarchy, `Abort Transaction` rollback rules for custom error tables, and structured logging |
 | **Integrations & Security** | [`integration-service-patterns`](skills/integration-service-patterns/SKILL.md) | `_IS` wrapper modules, canonical domain structures, `OnBeforeRequest`/`OnAfterResponse`, and timeouts |
 | **Integrations & Security** | [`security-rbac-guardrails`](skills/security-rbac-guardrails/SKILL.md) | Server-side `Check<Role>Role` validation, Advanced SQL injection prevention, and secure coding |
+| **Integrations & Security** | [`reactive-data-action-security`](skills/reactive-data-action-security/SKILL.md) | Guardrails for Reactive Data Actions: prevents leaking secrets/tokens & customer PII over `/screenservices` JSON payloads |
 | **Integrations & Security** | [`log-security-and-pii-masking`](skills/log-security-and-pii-masking/SKILL.md) | GDPR/RGPD guardrails preventing customer PII (NIF, Email, Name, Phone/MSISDN, IBAN) & secrets in logs |
 | **Mobile Plugins** | [`cordova-plugin-wrapper`](skills/cordova-plugin-wrapper/SKILL.md) | OutSystems mobile wrapper modules: Extensibility Configurations JSON, `$resolve()` JS nodes, and browser fallbacks |
 | **Mobile Plugins** | [`cordova-plugin-builder`](skills/cordova-plugin-builder/SKILL.md) | Complete GitHub repo template (`templates/`) & patterns for MABS 12/13 (Kotlin + Swift, `<merges>` extensions, SPM/Pods, and hooks) |
@@ -99,6 +100,8 @@ outsystems-ai-skills/
     ├── outsystems-naming-conventions/
     │   └── SKILL.md
     ├── performance-anti-patterns/
+    │   └── SKILL.md
+    ├── reactive-data-action-security/
     │   └── SKILL.md
     ├── reactive-lifecycle-and-sync/
     │   └── SKILL.md
