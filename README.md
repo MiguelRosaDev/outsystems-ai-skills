@@ -28,6 +28,7 @@ This repository equips any AI model with **production-grade OutSystems 11 engine
 | **Visual & UI** | [`outsystems-flow-comments`](skills/outsystems-flow-comments/SKILL.md) | Canvas comment positioning (1 column right on the same row), connector pinning (`next`/`pins`), header notes, and compact sizing |
 | **Visual & UI** | [`css-format`](skills/css-format/SKILL.md) | 4-space multi-line CSS formatting and full-sheet replacement for OutSystems themes, screens, and blocks |
 | **Visual & UI** | [`reactive-lifecycle-and-sync`](skills/reactive-lifecycle-and-sync/SKILL.md) | Screen/Block lifecycle rules (`OnInitialize`, `OnReady`, `OnRender`, `OnParametersChanged`) & Mobile Offline Sync patterns |
+| **Visual & UI** | [`traditional-to-reactive-migration`](skills/traditional-to-reactive-migration/SKILL.md) | Step-by-step migration from Traditional Web to Reactive Web (`Preparation`, `Session`, `Screen Actions`, `Notify`, `Popup_Editor`) |
 | **Architecture & Data** | [`architecture-canvas-4lc`](skills/architecture-canvas-4lc/SKILL.md) | 4-Layer Canvas (Orchestration, End-User, Core, Foundation), the 3 Golden Rules, and module suffixes |
 | **Architecture & Data** | [`data-modeling-best-practices`](skills/data-modeling-best-practices/SKILL.md) | Foreign Key Delete Rules (`Protect`, `Delete`, `Ignore`), 1-to-1 Binary Data isolation, and Static Entities |
 | **Architecture & Data** | [`crud-wrapper-pattern`](skills/crud-wrapper-pattern/SKILL.md) | Read-only entity exposure, audit attributes, and `<Entity>_Create/Update/Get/Delete` wrapper actions |
@@ -100,7 +101,9 @@ outsystems-ai-skills/
     │   └── SKILL.md
     ├── security-rbac-guardrails/
     │   └── SKILL.md
-    └── timers-and-bpt-patterns/
+    ├── timers-and-bpt-patterns/
+    │   └── SKILL.md
+    └── traditional-to-reactive-migration/
         └── SKILL.md
 ```
 
