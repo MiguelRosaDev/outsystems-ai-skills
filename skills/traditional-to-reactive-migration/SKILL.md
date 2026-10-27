@@ -1,84 +1,88 @@
 ---
 name: traditional-to-reactive-migration
-description: Architectural and step-by-step migration guide for converting OutSystems 11 Traditional Web applications into Reactive Web applications. Covers Preparation to asynchronous Aggregates/Data Actions, Session Variables to Client Variables, Screen Actions (server PostBack) to Client Actions + single Orchestrator Server Action, Notify/OnNotify to strongly-typed Block Events, and RichWidgets/Popup_Editor to OutSystems UI Reactive patterns. Use whenever migrating, modernizing, or refactoring Traditional Web modules to Reactive Web.
+description: Comprehensive architectural, frontend, and backend migration guide for converting OutSystems 11 Traditional Web applications into Reactive Web applications. Covers SSR vs React SPA, ViewState elimination, Preparation to asynchronous Aggregates/Data Actions, Screen Actions to Client Actions + single Server Action, HTTPRequestHandler replacements, Download/Upload, Emails, Session vs Client Variables, and RichWidgets/Silk UI to OutSystems UI. Use whenever migrating, modernizing, or refactoring Traditional Web modules to Reactive Web.
 ---
 
 # traditional-to-reactive-migration
 
-Migrating an **OutSystems 11 (O11) Traditional Web** application to **Reactive Web** is **not** a 1-to-1 copy-paste of screens and actions. Traditional Web executes synchronously on the server (ASP.NET PostBack / Ajax Submit), whereas Reactive Web is a client-side Single-Page Application (React SPA) where UI logic runs in the browser and communicates with the server asynchronously over HTTP.
+Migrating an **OutSystems 11 (O11) Traditional Web** application to **Reactive Web** is a fundamental architectural shift from **Server-Side Rendering (SSR with ASP.NET PostBack & `ViewState`)** to a **Client-Side Single-Page Application (ReactJS SPA communicating with stateless REST/JSON endpoints)**.
 
-When inspecting a Traditional Web module via MCP tools (`getScreenNamesTraditional`, `getScreenTraditional`, `getWebBlockNamesTraditional`, `getWebBlockTraditional`, `getSessionVariables`, `getEmailTemplateTraditional`), follow these strict translation rules.
-
----
-
-## 1. Pre-Migration Architecture: Extract Core Logic First
-
-Traditional Web applications frequently suffer from monolithic modules where Entities, Business Logic, and UI Screens live in the same module.
-1. **Never migrate database Entities into a Reactive UI module**:
-   - Keep or extract Entities and CRUD wrappers in a Core Service (`_CS`) module, and shared Server Actions in a Business Logic (`_BL`) module.
-   - This allows the legacy Traditional Web app and the new Reactive Web app (`_CW` + End-User UI) to **run side-by-side** against the exact same database tables during a phased (Strangler Fig) migration.
+When inspecting a Traditional Web module via MCP tools (`getScreenNamesTraditional`, `getScreenTraditional`, `getWebBlockNamesTraditional`, `getWebBlockTraditional`, `getSessionVariables`, `getEmailTemplateTraditional`, `getThemeTraditional`), follow these strict Frontend and Backend conversion rules based on official OutSystems 11 documentation.
 
 ---
 
-## 2. Paradigm Mapping: Traditional Web vs. Reactive Web
+## 1. Factory Migration Strategy & Hybrid Coexistence
 
-| Traditional Web Concept | Reactive Web Equivalent | Critical Migration Rule |
+1. **Bottom-Up Producer-to-Consumer Order**:
+   - Traditional Web Blocks and Themes **cannot** be referenced by Reactive Web modules.
+   - Always migrate **from bottom to top**: extract/decouple **Core (`_CS`, `_BL`)** modules first, then **Core Widgets (`_CW`)**, and finally **End-User Reactive UI** modules.
+2. **Decouple Entities from Traditional UI Modules**:
+   - Never copy Entities into the new Reactive UI module. Keep Entities and CRUD wrappers in a Core Service (`_CS`) module so both the legacy Traditional Web app and the new Reactive Web app can run side-by-side over the same database tables (*Strangler Fig pattern*).
+3. **Single Sign-On (SSO) Between App Types**:
+   - Traditional Web and Reactive Web use different session cookies by default. When running a hybrid factory where users navigate between Traditional and Reactive screens, ensure **Single Sign-On between App Types** is enabled in Service Center (`Administration > Security`).
+
+---
+
+## 2. Backend & Execution Architecture Differences
+
+| Backend Dimension | Traditional Web (SSR) | Reactive Web (SPA) | Migration Action Required |
+| :--- | :--- | :--- | :--- |
+| **State Serialization (`ViewState`)** | Every screen Local Variable and `Preparation` query list is serialized into hidden `__VIEWSTATE` HTML and sent back and forth on every PostBack/Ajax Submit. | **No `ViewState` exists.** Local Variables live in browser memory (React state). Only explicit inputs/outputs of a called Server Action travel over the network as JSON. | Stop using workarounds built to avoid `ViewState` bloat; keep UI state in Screen Local Variables and pass only required inputs to Server Actions. |
+| **Screen Data Fetching (`Preparation`)** | Runs **synchronously** top-to-bottom on the server *before* HTML is sent to the browser. | **No `Preparation` exists.** Screen shell renders immediately; **Screen Aggregates** and **Data Actions** run **asynchronously and in parallel**. | Convert independent queries into Screen Aggregates (`Fetch = At start`). Consolidate dependent multi-step server queries/logic into a single **Data Action**. |
+| **UI Event Logic (`Screen Actions`)** | `Submit` and `Ajax Submit` Screen Actions execute **on the server** with direct access to DB Aggregates, Entities, and `Session`. | UI events trigger **Client Actions** executing **in the browser (JavaScript)**. Client Actions cannot access DB Entities or Server Variables directly. | Split every Traditional Screen Action into: **(1) a Client Action** (UI validation, state, navigation) calling **(2) at most ONE Orchestrator Server Action** (DB & business logic). |
+| **`Session Variables` vs `Client Variables`** | `Session.<Var>` is stored in server memory / Session DB. | `Client.<Var>` is stored in the browser's **`localStorage`** (inspectable and editable by the user in DevTools). | Convert **only** non-sensitive UI preferences (filters, active tab, theme) to `Client Variables`. **Never** migrate roles (`IsAdmin`), `NIF`, `Email`, tokens, or prices to `Client Variables`—resolve them on the server via `GetUserId()`. |
+| **Global Request Hooks** | Server-side System Event **`OnBeginWebRequest`** runs before every HTTP page request. | Client-side System Events **`OnApplicationReady`** (SPA boot) and **`OnApplicationResume`**, plus Layout Block `OnInitialize`. | Move global client initialization to `OnApplicationReady`, and move security/authorization checks inside the Server Actions / Data Actions that serve data. |
+
+---
+
+## 3. Critical Backend-to-Frontend Traps (`HTTPRequestHandler`, `Download`, `Upload`, `Email`)
+
+### Trap 1: `HTTPRequestHandler` Actions Fail in Reactive Server Actions
+In Traditional Web, developers call `HTTPRequestHandler` extension actions (`RunJavaScript`, `AddJavaScriptTag`, `AddStyleSheetTag`, `SetPageTitle`) inside `Preparation` or `Screen Actions` to manipulate the HTML response.
+In Reactive Web, **Server Actions return JSON, not HTML, and have no connection to the browser DOM**:
+* **`HTTPRequestHandler\RunJavaScript`** -> **Remove from Server Actions.** Move the JavaScript execution into a **Client Action** using the native **`JavaScript` node** (passing inputs/outputs via `$parameters`).
+* **`HTTPRequestHandler\AddJavaScriptTag`** -> Replace with the **`RequireScript`** Client Action or add the script to the Screen/Block `Required Scripts` property.
+* **`HTTPRequestHandler\SetPageTitle`** -> Bind the Screen's **`Title`** expression property directly or set `document.title` in a Client Action `JavaScript` node.
+
+### Trap 2: The `Download` Node Moved from Server to Client
+* **Traditional Web**: The `Download` node sits at the end of a **Screen Action** (`Method = Submit`) on the server and streams the file in the HTTP response.
+* **Reactive Web**: The **`Download` node is ONLY available inside Client Actions** (as an End node).
+  - **Migration Pattern**: Create a Server Action that generates/fetches the file and returns `FileContent` (`Binary Data`) and `FileName` (`Text`) as Output Parameters. Call that Server Action from your **Client Action**, and end the Client Action with the **`Download`** node.
+
+### Trap 3: The `Upload` Widget No Longer Uses Page `Submit`
+* **Traditional Web**: Required a button with `Method = Submit` to post multipart form data to a Screen Action.
+* **Reactive Web**: The **`Upload` widget** binds directly to two Screen Local Variables (`FileContent` of type `Binary Data` and `FileName` of type `Text`) on the client. A standard Client Action reads those variables and passes them to a Server Action asynchronously without reloading the screen.
+
+### Trap 4: `Emails` & `Send Email`
+* **Traditional Web**: Emails have a `Preparation` and can be sent from any Screen Action or Server Action.
+* **Reactive Web**:
+  - Reactive Email templates do **not** have a `Preparation` (use **Aggregates** or **Data Actions** inside the Email definition to load data).
+  - The **`Send Email`** node can **only be executed inside a Server Action** (never directly on a Client Action canvas).
+
+---
+
+## 4. Frontend, Widgets & UI Pattern Mapping (`RichWidgets` / `Silk UI` -> `OutSystems UI`)
+
+| Traditional Web Widget / Pattern | Reactive Web Equivalent | Key Implementation Difference |
 | :--- | :--- | :--- |
-| **`Preparation`** (Synchronous server flow before render) | **Screen Aggregates** (`Fetch = At start`) + **Data Actions** + **`OnInitialize`** | Independent queries become parallel **Screen Aggregates**. Dependent multi-step server queries/logic become a single **Data Action**. Never chain sequential server calls across `OnAfterFetch` events. |
-| **`Screen Action`** (`Submit` / `Ajax Submit` running on server) | **`Client Action`** (browser) + **1 Orchestrator `Server Action`** | Traditional Screen Actions ran on the server. In Reactive, UI events trigger **Client Actions** in the browser. Move all server queries/writes from the old Screen Action into **one single Server Action** and call it from the Client Action. |
-| **`Session Variable`** (`Session.<Name>` on server) | **`Client Variable`** (`Client.<Name>` in browser `localStorage`) **OR** Server DB state | Only migrate non-sensitive UI preferences (filters, active tab, theme) to `Client Variables`. **Never** put sensitive/authoritative state (roles, NIF, permissions, balances) in `Client Variables`—resolve them on the server via `GetUserId()`. |
-| **`Ajax Refresh`** widget node | **Automatic Reactive Data Binding** (`Refresh Data` for Aggregates/Data Actions) | Remove all `Ajax Refresh` nodes. Updating a Local Variable or executing `Refresh Data` automatically re-renders every bound widget on the screen. |
-| **Web Block `Notify` + `OnNotify` + `NotifyGetMessage()`** | **Block `Events` (Strongly-Typed)** | Replace untyped string `Notify` messages with named Block **Events** that carry typed Input Parameters (e.g., `OnItemSelected(ItemId)`). |
-| **`Popup_Editor`** (RichWidgets iframe + separate Screen + `Popup_Editor_Notify`) | **`Popup` Widget** (inline on Screen or wrapping a Block) | Do **not** create a separate Screen for a modal popup. Use the Reactive `Popup` widget bound to a boolean Local Variable (`ShowPopup = True/False`) and encapsulate reusable modal content inside a **Block**. |
-| **`Feedback_Message`** (RichWidgets Server Action) | **`FeedbackMessage`** (Built-in Client Node) | Replace `RichWidgets\Feedback_Message` calls with the native `FeedbackMessage` node in the Client Action flow. |
-| **`List_Navigation` / `List_Counter` / `List_SortColumn`** | **Reactive `Pagination` & `Table` `OnSort` Event** | Use a `StartIndex` and `MaxRecords` Local Variable bound to the Screen Aggregate's `Start Index` and `Max Records`, and refresh the Aggregate inside the `OnNavigate` / `OnSort` Client Action. |
+| **`Ajax Refresh`** node | **None (Automatic Reactive Binding)** | Delete all `Ajax Refresh` nodes. Mutating a Local Variable or executing `Refresh Data` on an Aggregate/Data Action automatically re-renders bound widgets. |
+| **`TableRecords`** + `List_Navigation` + `List_SortColumn` | **`Table`** widget + **`Pagination`** (`OutSystemsUI`) | Bind `StartIndex` and `MaxRecords` Local Variables to the Aggregate. Handle sorting via the Table's **`OnSort`** event (`SortAttribute` local variable) and call `Refresh Data`. |
+| **`ListRecords`** | **`List`** widget (or `Gallery`) | Note: In Reactive Web, avoid mutating `.List.Current` outside a list context; pass the current item or `Id` explicitly to the triggered Client Action. |
+| **`ComboBox`** (`Source Record List` / `Special List`) | **`Dropdown`** (or `DropdownSearch` / `DropdownTags`) | `Special List` does not exist on the standard `Dropdown`; use `Empty Text` for the default prompt option, or combine options in a Data Action / Local List if custom special entries are needed. |
+| **Web Block `Notify` + `OnNotify` + `NotifyGetMessage()`** | **Block `Events` (Strongly-Typed)** | Replace untyped string `Notify` calls with named Block **Events** carrying typed Input Parameters (e.g., `OnCustomerSelected(CustomerId)`). |
+| **`Popup_Editor`** (RichWidgets iframe + separate Screen + `Popup_Editor_Notify`) | **`Popup` Widget** (inline on Screen or wrapping a Block) | Eliminate the separate Popup Web Screen. Place a **`Popup`** widget controlled by a boolean Local Variable (`IsPopupOpen`) on the parent Screen, and put complex modal content inside a reusable **Block** that emits an Event (`OnSaved` / `OnClosed`). |
+| **Button/Link `Confirmation Message` property** | **Confirmation `Popup` Dialog** (or JS `confirm`) | Reactive Buttons/Links do **not** have a built-in `Confirmation Message` property. Open a confirmation `Popup` widget before executing the destructive Client Action. |
+| **`Input_Calendar` (RichWidgets)** | **`DatePicker` (`OutSystemsUI`)** | Use the OutSystems UI `DatePicker` block or native `<input type="date">` (`Input` widget with `Input Type = Date`). |
+| **`Feedback_Message` (RichWidgets)** | **`FeedbackMessage` (Built-in Node)** | Use the native `FeedbackMessage` tool directly inside the Client Action flow. |
 
 ---
 
-## 3. Step-by-Step Screen Migration Rules
-
-### Rule 1: Converting `Preparation` Without Creating Waterfall Round-Trips
-In Traditional Web, a `Preparation` often looks like:
-```text
-[Traditional Preparation]
-  Start -> GetCustomerById (Aggregate)
-        -> GetCustomerOrders (Aggregate using GetCustomerById.List.Current)
-        -> CalculateLoyaltyPoints (Server Action)
-        -> CheckPermissions (Server Action) -> End
-```
-* **❌ Wrong Reactive Migration**: Creating 2 Screen Aggregates and calling `CalculateLoyaltyPoints` and `CheckPermissions` inside `OnAfterFetch` or `OnReady` (which causes 3–4 sequential HTTP round-trips after page load).
-* **✅ Correct Reactive Migration**:
-  - If `CustomerId` is already a Screen Input Parameter, `GetCustomerById` and `GetCustomerOrders` (filtering by `CustomerId`) can run as **parallel Screen Aggregates** (`Fetch = At start`), OR
-  - Consolidate the dependent queries and server calculations (`CalculateLoyaltyPoints` + `CheckPermissions`) into a **single `Data Action`** (`GetScreenData`) that returns a composite output structure in **one HTTP round-trip**.
-
-### Rule 2: Converting Traditional `Screen Actions` to Reactive `Client Actions`
-In Traditional Web, every button click ran a `Screen Action` on the server, where developers freely placed Aggregates, `CreateOrUpdate` entity actions, and REST calls directly on the canvas.
-In Reactive Web:
-1. Create a **Client Action** for the UI event (e.g., `SaveOnClick`).
-2. Keep client-side form validation (`Form.Valid`) and UI state toggles (`IsSaving = True`) inside the Client Action.
-3. Encapsulate **all** server-side Aggregates, CRUD wrappers, and business logic from the old Screen Action into **a single Server Action** (respecting the `client-action-single-server-call` rule).
-4. Return the result (`IsSuccess`, `ErrorMessage`, `UpdatedId`) to the Client Action, trigger `FeedbackMessage`, and navigate to the `Destination`.
-
-### Rule 3: Eliminating `Popup_Editor` Screens
-In Traditional Web, every modal dialog required its own dedicated Web Screen, `Popup_Editor` RichWidget, `Popup_Editor_Notify`, and `Popup_Editor_Close`.
-When migrating to Reactive Web:
-1. Convert the old Popup Screen into either:
-   - An inline **`Popup` dialog widget** directly on the parent Screen (for simple confirmations/forms), OR
-   - A reusable **Block** placed inside a `Popup` widget on the parent Screen (when the modal has its own data fetching and validation logic).
-2. Replace `Popup_Editor_Notify` + `Popup_Editor_Close` with a typed **Block Event** (e.g., `OnSaved` / `OnCancelled`) that the parent Screen handles by setting `IsPopupOpen = False` and calling `Refresh Data`.
-
-### Rule 4: Auditing `Session Variables` Before Creating `Client Variables`
-Inspect every variable returned by `getSessionVariables` in the Traditional module:
-- **Search filters, pagination state, UI toggle states**: Convert to `Client Variables` (if shared across screens) or Screen Input Parameters / Local Variables.
-- **Security context, Role flags (`Session.IsAdmin`), Customer NIF/Email, Tenant/Company IDs, Shopping Cart prices**: **NEVER** store in `Client Variables`. Look them up on the server inside Server Actions / Data Actions using the authenticated `GetUserId()`.
-
----
-
-## 4. Migration Verification Checklist
+## 5. Pre-Commit Migration Checklist
 
 Before marking a migrated Reactive Screen or Block complete:
-- [ ] **Zero Business/DB Logic in UI**: Are all Entities and CRUD actions kept in `_CS`/`_BL` modules rather than copied into the new Reactive module?
-- [ ] **No Sequential `OnAfterFetch` Waterfalls**: Were dependent `Preparation` steps consolidated into a single **Data Action** instead of chained across `OnAfterFetch` client handlers?
-- [ ] **Single Server Call per Client Action**: Were multi-step server operations from old `Screen Actions` wrapped into **1 Server Action**?
-- [ ] **Session Security Check**: Are `Client Variables` completely free of PII (`NIF`, `Email`), security flags (`IsAdmin`), and sensitive tokens?
-- [ ] **Popups & Blocks Modernized**: Were `Popup_Editor` screens converted into Reactive `Popup` widgets/Blocks with typed `Events` instead of `Notify` strings?
+- [ ] **No `Preparation` Waterfall**: Were dependent server queries/actions from `Preparation` consolidated into a single **Data Action** rather than chained across multiple `OnAfterFetch` client round-trips?
+- [ ] **Single Server Call per Client Action**: Were all server queries/writes from each old `Screen Action` encapsulated into **1 Orchestrator Server Action**?
+- [ ] **No `HTTPRequestHandler\RunJavaScript` in Server Actions**: Were all DOM/JS manipulations moved to Client Action `JavaScript` nodes?
+- [ ] **`Download` & `Upload` Refactored**: Are all `Download` nodes placed inside Client Actions, and `Upload` widgets bound to local `Binary Data` / `Text` variables?
+- [ ] **`Client Variables` Security Audit**: Are all sensitive `Session Variables` (`IsAdmin`, `NIF`, `Email`, tokens) excluded from `Client Variables` and validated server-side via `GetUserId()`?
+- [ ] **Popups & Events Modernized**: Were `Popup_Editor` screens replaced by Reactive `Popup` widgets/Blocks and `Notify` calls replaced by typed Block `Events`?
